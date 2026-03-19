@@ -1,9 +1,16 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { format } from 'date-fns';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
+	import JoinModal from '$lib/components/JoinModal.svelte';
 
 	export let data: PageData;
+
+	let showJoinModal = false;
+	function onJoinSuccess() {
+		showJoinModal = false;
+		invalidateAll(); // Refresh layout to get user
+	}
 
 	// ── Mapa de colores: 4 categorías globales ───────────────────────────────
 	// 🔵 Agua  🟢 Verde  🟣 Zen  🟠 Social  — más tipos específicos heredan el color
@@ -621,6 +628,10 @@
 			const t = cleanEventTitle(ev.title, ev.cityName);
 			if (t && t.length > 2) titles.add(t);
 		}
+		for (const ev of forYouEvents) {
+			const t = cleanEventTitle(ev.title, ev.cityName);
+			if (t && t.length > 2) titles.add(t);
+		}
 		return Array.from(titles);
 	})();
 	$: if (toTranslate.length > 0 && userLang) {
@@ -749,7 +760,10 @@
 			discoveryCachedAt = offline.meta.savedAt;
 		}
 
-		if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+		if (typeof navigator === 'undefined' || !navigator.geolocation) {
+			callDiscover(41.98, -91.66);
+			return;
+		}
 
 		detectingCity = true;
 		navigator.geolocation.getCurrentPosition(
@@ -777,8 +791,14 @@
 						sendDiscoveryNotif(discoveredPlaces.length, importStats.cityName);
 					}
 				});
+				// Para ti en [Ciudad]: eventos personalizados si el usuario tiene cuenta
+				fetchForYouAndSaveHome(coords.latitude, coords.longitude);
 			},
-			() => { detectingCity = false; },
+			() => {
+				detectingCity = false;
+				// Sin ubicación: cargar eventos locales (facebook-events.json) para diseño
+				callDiscover(41.98, -91.66);
+			},
 			{ timeout: 8000, maximumAge: 5 * 60 * 1000 }
 		);
 	});
@@ -794,8 +814,6 @@
 	}
 		let discoveredPlaces: DiscoveredPlace[] = [];
 		let discovering      = false;
-		let discoveryError   = '';
-		let discoveryNeedsToken = false;
 		let discoveryUsedFallback = false;
 		let discoveryCached  = false;
 	let discoveryCachedAt: number | null = null;
@@ -897,8 +915,6 @@
 
 	async function callDiscover(lat: number, lng: number) {
 		discovering         = true;
-		discoveryError      = '';
-		discoveryNeedsToken = false;
 		discoveryUsedFallback = false;
 		importStats         = null;
 		mapBounds           = null;
@@ -914,14 +930,50 @@
 			discoveredPlaces   = d.results   ?? [];
 			discoveryCached    = d.cached    ?? false;
 			discoveryCachedAt  = d.cachedAt  ?? null;
-			discoveryNeedsToken = d.needsToken ?? false;
 			discoveryUsedFallback = d.usedFallback ?? false;
 			importStats        = d.imported  ?? null;
 			if (discoveredPlaces.length > 0) showMap = true;
-		} catch (e: unknown) {
-			discoveryError = e instanceof Error ? e.message : 'Error de conexión';
+		} catch {
+			// Sin mensaje de error: fallback se maneja en la API
 		} finally {
 			discovering = false;
+		}
+	}
+
+	// ── Para ti en [Ciudad]: eventos personalizados para usuarios con cuenta ───
+	let forYouCityOverride: { id: number; name: string; country: string; countryCode: string; state: string | null } | null = null;
+	let forYouEventsOverride: Array<{
+		id: number; title: string; description: string | null; dateStart: number; type: string;
+		price: string | null; priceAmount: number | null; venueName: string | null; venueAddress: string | null;
+		venueLat: number | null; venueLng: number | null; cityName: string | null; cityState: string | null;
+		cityCountry: string | null; imageUrl: string | null; featured: boolean; score: number;
+		rankReasons: string[]; isStarOfDay?: boolean; starLabel?: string | null;
+	}> = [];
+	let forYouLoading = false;
+
+	$: forYouCity = forYouCityOverride ?? data.forYouCity ?? null;
+	$: forYouEvents = forYouEventsOverride.length > 0 ? forYouEventsOverride : (data.forYouEvents ?? []);
+
+	async function fetchForYouAndSaveHome(lat: number, lng: number) {
+		if (!data.user) return;
+		forYouLoading = true;
+		try {
+			const res = await fetch(`/api/events/for-you?lat=${lat}&lng=${lng}`);
+			if (res.ok) {
+				const d = await res.json();
+				forYouCityOverride = d.city ?? null;
+				forYouEventsOverride = d.events ?? [];
+			}
+			// Guardar ubicación para próximas visitas
+			await fetch('/api/geo', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ lat, lng }),
+			});
+		} catch {
+			// Silencioso
+		} finally {
+			forYouLoading = false;
 		}
 	}
 
@@ -996,8 +1048,29 @@
 
 	<!-- Hero — minimal, full viewport, responsive -->
 	<div class="min-h-screen min-h-[100dvh] flex flex-col items-center justify-center px-4 sm:px-6 py-8 sm:py-12 relative overflow-hidden">
+		<!-- Botón Entrar fijo: respaldo visible (blanco, esquina superior derecha) -->
+		{#if !data.user}
+			<button
+				on:click={() => showJoinModal = true}
+				style="position:absolute;top:1rem;right:1rem;z-index:50;background:white;color:#0c0c0e;padding:0.5rem 1rem;border-radius:0.5rem;font-weight:600;font-size:0.875rem;border:2px solid rgba(255,255,255,0.9);box-shadow:0 4px 20px rgba(0,0,0,0.5);"
+				class="hover:bg-gray-100 transition-colors"
+			>
+				Entrar
+			</button>
+		{/if}
 		<!-- Subtle warm orb -->
 		<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] bg-gendo-accent/8 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+
+		<!-- Botón Entrar de respaldo: esquina superior derecha, blanco puro para máxima visibilidad -->
+		{#if !data.user}
+			<button
+				on:click={() => showJoinModal = true}
+				style="position: absolute; top: 1rem; right: 1rem; background: white; color: #0c0c0e; z-index: 50; padding: 0.5rem 1rem; border-radius: 0.75rem; font-weight: 600; font-size: 0.875rem; border: 2px solid rgba(255,255,255,0.9); box-shadow: 0 4px 20px rgba(0,0,0,0.5);"
+				class="hover:bg-gray-100 transition-colors"
+			>
+				Entrar
+			</button>
+		{/if}
 
 		<div class="relative z-10 w-full max-w-xl text-center">
 			<h1 class="text-5xl sm:text-6xl md:text-7xl font-semibold tracking-tight text-white mb-3 sm:mb-4">
@@ -1043,6 +1116,15 @@
 				Explore events
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
 			</button>
+
+			{#if !data.user}
+				<button
+					on:click={() => showJoinModal = true}
+					class="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gendo-accent hover:bg-gendo-accent/90 text-white font-semibold border-2 border-gendo-accent/80 shadow-lg shadow-gendo-accent/20 text-sm transition-all"
+				>
+					✨ Crear cuenta gratis
+				</button>
+			{/if}
 
 			<!-- Subscribe — minimal, stacks on mobile -->
 			<div class="mt-12 sm:mt-16 pt-12 sm:pt-16 border-t border-white/[0.06] w-full max-w-sm mx-auto">
@@ -1101,8 +1183,112 @@
 
 		<ExplorerMode />
 
+		<!-- ── Para ti en [Ciudad] — usuarios con cuenta ─────────────────────── -->
+		{#if data.user && (forYouCity || forYouLoading || forYouEvents.length > 0)}
+			<section class="mb-10">
+				<div class="bg-gendo-surface border border-gendo-accent/30 rounded-2xl overflow-hidden">
+					<div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-white/[0.06] gap-3 flex-wrap">
+						<div class="flex items-center gap-2">
+							<span class="text-xl">🎯</span>
+							<h2 class="text-lg font-bold text-white">
+								{#if forYouLoading}
+									Detectando tu ciudad…
+								{:else if forYouCity}
+									Para ti en {forYouCity.name}
+								{:else}
+									Para ti
+								{/if}
+							</h2>
+							{#if forYouLoading}
+								<span class="inline-flex items-center gap-1.5 text-xs text-gendo-accent">
+									<svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+										<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+										<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+									</svg>
+								</span>
+							{/if}
+						</div>
+					</div>
+					{#if forYouLoading}
+						<div class="flex flex-col items-center justify-center py-12 px-6 text-center">
+							<p class="text-gray-400 text-sm">Buscando eventos en tu zona…</p>
+						</div>
+					{:else if forYouEvents.length > 0}
+						<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 px-5 pb-5">
+							{#each forYouEvents as ev (ev.id)}
+								<a href="/event/{ev.id}" on:click={() => trackClick(ev.type)} class="group relative bg-gendo-muted/50 border border-white/[0.06] hover:border-gendo-accent/50 rounded-2xl p-5 transition-all hover:shadow-lg hover:shadow-gendo-accent/10">
+									<button
+										on:click={(e) => toggleSave(ev.id, e)}
+										disabled={savingEventId === ev.id}
+										class="absolute top-3 right-3 p-1.5 rounded-full transition-colors z-10
+											{savedEventIds.has(ev.id)
+												? 'text-red-400 hover:bg-red-500/20'
+												: 'text-gray-500 hover:text-red-400 hover:bg-white/5'}"
+										title={savedEventIds.has(ev.id) ? 'Quitar de favoritos' : 'Guardar en favoritos'}
+									>
+										{#if savingEventId === ev.id}
+											<svg class="w-4 h-4 animate-pulse" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/></svg>
+										{:else if savedEventIds.has(ev.id)}
+											<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+										{:else}
+											<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+										{/if}
+									</button>
+									<div class="flex items-start gap-3">
+										<div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-2xl {getCategoryBadge(ev.type).badge}">
+											{typeEmoji[ev.type] ?? '📅'}
+										</div>
+										<div class="flex-1 min-w-0">
+											<div class="flex items-center gap-1.5 mb-1 flex-wrap">
+												{#if getRankBadge(ev)}
+													<span class="text-[11px] px-2 py-0.5 rounded-full font-medium {getRankBadge(ev).cls}">
+														{getRankBadge(ev).label}
+													</span>
+												{/if}
+												<span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium {getCategoryBadge(ev.type).badge}">
+													<span class="w-1.5 h-1.5 rounded-full flex-shrink-0 {getCategoryBadge(ev.type).dot}"></span>
+													{typeLabel[ev.type] ?? ev.type}
+												</span>
+												{#if ev.price === 'free'}
+													<span class="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full">FREE</span>
+												{/if}
+											</div>
+											<h3 class="font-semibold text-white group-hover:text-gendo-accent transition-colors line-clamp-2">{t(cleanEventTitle(ev.title, ev.cityName))}</h3>
+											<p class="text-gendo-accent/90 text-xs mt-1">{formatEventDate(ev.dateStart)}</p>
+											{#if ev.venueName}
+												<button
+													on:click={(e) => openDirections(e, ev)}
+													class="text-gray-400 text-xs mt-0.5 truncate text-left w-full hover:text-gendo-accent transition-colors cursor-pointer"
+													title="Abrir en mapa"
+												>📍 {cleanVenueName(ev.venueName, ev.cityName)}</button>
+											{/if}
+											{#if ev.cityName}
+												<p class="text-gray-500 text-xs mt-0.5">🌍 {formatEventCity(ev)}</p>
+											{/if}
+											<button
+												on:click={(e) => openDirections(e, ev)}
+												class="mt-2 inline-flex items-center gap-1 text-xs text-gendo-accent hover:text-gendo-accent/80 transition-colors"
+												title="Cómo llegar"
+											>
+												<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+												Cómo llegar
+											</button>
+										</div>
+									</div>
+								</a>
+							{/each}
+						</div>
+					{:else if forYouCity}
+						<p class="text-gray-400 text-sm py-8 px-5 text-center">
+							No hay eventos próximos en {forYouCity.name}
+						</p>
+					{/if}
+				</div>
+			</section>
+		{/if}
+
 		<!-- ── Descubrimiento Autónomo por GPS ──────────────────────────────── -->
-		{#if discovering || discoveredPlaces.length > 0 || discoveryError || discoveryNeedsToken}
+		{#if discovering || discoveredPlaces.length > 0}
 			<section class="mb-10">
 				<div class="bg-gendo-surface border border-white/[0.06] rounded-2xl overflow-hidden">
 
@@ -1122,10 +1308,6 @@
 							{:else if discoveryCached && discoveryCachedAt}
 								<span class="text-xs text-gendo-text-muted bg-gendo-muted px-2 py-0.5 rounded-full">
 									📦 caché · {new Date(discoveryCachedAt).toLocaleDateString('es', { day: 'numeric', month: 'short' })}
-								</span>
-							{:else if discoveryUsedFallback}
-								<span class="text-xs text-amber-400/90 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
-									📄 facebook-events.json
 								</span>
 							{/if}
 							<!-- Ciudad detectada -->
@@ -1165,29 +1347,6 @@
 							<p class="text-white font-semibold mb-1">Explorando tu zona…</p>
 							<p class="text-gray-400 text-sm max-w-xs">
 								Gendo está buscando parques, eventos, restaurantes y más en Google Maps. Esto puede tardar hasta 2 minutos la primera vez.
-							</p>
-						</div>
-
-					<!-- Error -->
-					{:else if discoveryError}
-						<div class="flex flex-col items-center justify-center py-8 px-6 text-center">
-							<p class="text-red-400 text-sm">⚠️ {discoveryError}</p>
-							{#if userLat && userLng}
-								<button
-									on:click={() => callDiscover(userLat ?? 0, userLng ?? 0)}
-									class="mt-3 text-xs text-gendo-accent hover:text-gendo-accent/80 transition-colors"
-								>Reintentar</button>
-							{/if}
-						</div>
-
-					<!-- APIFY_TOKEN no configurado -->
-					{:else if discoveryNeedsToken}
-						<div class="flex flex-col items-center justify-center py-8 px-6 text-center">
-							<p class="text-gray-400 text-sm">
-								Para descubrir lugares cerca de ti, configura <code class="bg-gendo-muted px-1 rounded">APIFY_TOKEN</code> en Vercel.
-							</p>
-							<p class="text-gray-500 text-xs mt-2">
-								Token gratis en <a href="https://apify.com" target="_blank" rel="noopener" class="text-gendo-accent hover:underline">apify.com</a> → Settings → Environment Variables
 							</p>
 						</div>
 
@@ -1314,7 +1473,7 @@
 					<!-- Nota de pie -->
 					{#if !discovering}
 						<div class="px-5 pb-4 text-xs text-gendo-text-muted border-t border-white/[0.06] pt-3 flex flex-wrap items-center justify-between gap-2">
-							<span>Resultados de Google Maps via Apify · Rating ≥ 4.0 ó ≥ 30 reseñas · Caché 24 h por zona</span>
+							<span>{#if discoveryUsedFallback}Eventos locales · facebook-events.json{:else}Resultados de Google Maps via Apify · Rating ≥ 4.0 ó ≥ 30 reseñas · Caché 24 h por zona{/if}</span>
 							{#if discoveryCachedAt}
 								<span class="text-gray-700">
 									📦 Disponible sin conexión hasta {new Date(discoveryCachedAt + 48*3600*1000).toLocaleDateString('es', { day:'numeric', month:'short' })}
@@ -1820,6 +1979,9 @@
 		<div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-zinc-500">
 			<p>Gendo</p>
 			<nav class="flex flex-wrap justify-center gap-4 sm:gap-6">
+				{#if data.user}
+					<a href="/profile" class="hover:text-white transition-colors">Mi perfil</a>
+				{/if}
 				<a href="/agenda" class="hover:text-white transition-colors">Agenda</a>
 				<a href="/meetups" class="hover:text-white transition-colors">Meetups</a>
 				<a href="/submit" class="hover:text-white transition-colors">Submit</a>
@@ -1827,4 +1989,6 @@
 			</nav>
 		</div>
 	</footer>
+
+	<JoinModal bind:open={showJoinModal} on:success={onJoinSuccess} />
 </div>

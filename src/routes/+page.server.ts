@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { all, get } from '$lib/db/client';
 import { cleanupPastEvents } from '$lib/db/cleanup';
+import { getForYouEvents } from '$lib/events/for-you';
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 interface RawEvent { [key: string]: unknown }
@@ -281,9 +282,12 @@ function mapEvent(e: RawEvent, score: number, reasons: string[]) {
 }
 
 // ── Load ─────────────────────────────────────────────────────────────────────
-export const load: PageServerLoad = async ({ cookies }) => {
+export const load: PageServerLoad = async ({ cookies, parent }) => {
 	// Limpieza automática: borrar eventos pasados (throttled a cada 6 h)
 	await cleanupPastEvents();
+
+	const parentData = await parent();
+	const user = parentData.user as { id?: number; home_lat?: number; home_lng?: number } | null;
 
 	const now      = Math.floor(Date.now() / 1000);
 	const hour     = new Date().getHours();
@@ -302,6 +306,25 @@ export const load: PageServerLoad = async ({ cookies }) => {
 		`, sessionId);
 
 		for (const p of prefs) prefMap.set(p.category, p.click_count);
+	}
+
+	// ── 1b. Para ti en [Ciudad]: eventos personalizados si el usuario tiene cuenta y home guardado ─
+	let forYouCity: { id: number; name: string; country: string; countryCode: string; state: string | null } | null = null;
+	let forYouEvents: Array<{
+		id: number; title: string; description: string | null; dateStart: number; type: string;
+		price: string | null; priceAmount: number | null; venueName: string | null; venueAddress: string | null;
+		venueLat: number | null; venueLng: number | null; cityName: string | null; cityState: string | null;
+		cityCountry: string | null; imageUrl: string | null; featured: boolean; score: number;
+		rankReasons: string[]; isStarOfDay?: boolean; starLabel?: string | null;
+	}> = [];
+	if (user?.home_lat != null && user?.home_lng != null) {
+		try {
+			const result = await getForYouEvents(user.home_lat, user.home_lng, sessionId, user.id ?? null);
+			forYouCity = result.city;
+			forYouEvents = result.events;
+		} catch {
+			// Sin errores visibles al usuario
+		}
 	}
 
 	// ── 2. Eventos destacados ─────────────────────────────────────────────
@@ -431,10 +454,13 @@ export const load: PageServerLoad = async ({ cookies }) => {
 			});
 
 		return {
+			user: parentData.user,
 			featured,
 			cities,
 			upcoming,
 			stats,
+			forYouCity,
+			forYouEvents,
 			rankingContext: {
 				timeSlot,
 				timeSlotLabel: TIME_SLOT_LABEL[timeSlot],
