@@ -6,7 +6,9 @@ import { createClient } from '@libsql/client';
 import { join } from 'path';
 
 const TURSO_URL = process.env.TURSO_DATABASE_URL;
-const TURSO_TOKEN = process.env.TURSO_AUTH_TOKEN ?? '';
+const TURSO_TOKEN = (process.env.TURSO_AUTH_TOKEN ?? '')
+	.trim()
+	.replace(/^Bearer\s+/i, '');
 const DB_PATH = process.env.DATABASE_URL ?? join(process.cwd(), 'gendo.db');
 
 function getClient() {
