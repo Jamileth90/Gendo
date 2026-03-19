@@ -792,10 +792,11 @@
 		style: { emoji: string; label: string; badge: string; active: string; dot: string; mapPin: string };
 		source: 'discovery';
 	}
-	let discoveredPlaces: DiscoveredPlace[] = [];
-	let discovering      = false;
-	let discoveryError   = '';
-	let discoveryCached  = false;
+		let discoveredPlaces: DiscoveredPlace[] = [];
+		let discovering      = false;
+		let discoveryError   = '';
+		let discoveryNeedsToken = false;
+		let discoveryCached  = false;
 	let discoveryCachedAt: number | null = null;
 	// Filtro de categoría aplicado a la sección de descubrimiento
 	let discoverFilter   = 'all';
@@ -894,11 +895,12 @@
 	})();
 
 	async function callDiscover(lat: number, lng: number) {
-		discovering    = true;
-		discoveryError = '';
-		importStats    = null;
-		mapBounds      = null;
-		boundsEvents   = [];
+		discovering         = true;
+		discoveryError      = '';
+		discoveryNeedsToken = false;
+		importStats         = null;
+		mapBounds           = null;
+		boundsEvents        = [];
 		try {
 			const res = await fetch('/api/discover', {
 				method:  'POST',
@@ -907,10 +909,11 @@
 			});
 			const d = await res.json();
 			if (!res.ok) throw new Error(d.error ?? `Error ${res.status}`);
-			discoveredPlaces  = d.results   ?? [];
-			discoveryCached   = d.cached    ?? false;
-			discoveryCachedAt = d.cachedAt  ?? null;
-			importStats       = d.imported  ?? null;
+			discoveredPlaces   = d.results   ?? [];
+			discoveryCached    = d.cached    ?? false;
+			discoveryCachedAt  = d.cachedAt  ?? null;
+			discoveryNeedsToken = d.needsToken ?? false;
+			importStats        = d.imported  ?? null;
 			if (discoveredPlaces.length > 0) showMap = true;
 		} catch (e: unknown) {
 			discoveryError = e instanceof Error ? e.message : 'Error de conexión';
@@ -1096,7 +1099,7 @@
 		<ExplorerMode />
 
 		<!-- ── Descubrimiento Autónomo por GPS ──────────────────────────────── -->
-		{#if discovering || discoveredPlaces.length > 0 || discoveryError}
+		{#if discovering || discoveredPlaces.length > 0 || discoveryError || discoveryNeedsToken}
 			<section class="mb-10">
 				<div class="bg-gendo-surface border border-white/[0.06] rounded-2xl overflow-hidden">
 
@@ -1168,6 +1171,17 @@
 									class="mt-3 text-xs text-gendo-accent hover:text-gendo-accent/80 transition-colors"
 								>Reintentar</button>
 							{/if}
+						</div>
+
+					<!-- APIFY_TOKEN no configurado -->
+					{:else if discoveryNeedsToken}
+						<div class="flex flex-col items-center justify-center py-8 px-6 text-center">
+							<p class="text-gray-400 text-sm">
+								Para descubrir lugares cerca de ti, configura <code class="bg-gendo-muted px-1 rounded">APIFY_TOKEN</code> en Vercel.
+							</p>
+							<p class="text-gray-500 text-xs mt-2">
+								Token gratis en <a href="https://apify.com" target="_blank" rel="noopener" class="text-gendo-accent hover:underline">apify.com</a> → Settings → Environment Variables
+							</p>
 						</div>
 
 					<!-- Resultados -->

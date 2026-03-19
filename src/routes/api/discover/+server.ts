@@ -139,7 +139,7 @@ function buildSearchUrls(lat: number, lng: number): string[] {
 
 async function runApifyScraper(lat: number, lng: number): Promise<unknown[]> {
 	const token = env.APIFY_TOKEN;
-	if (!token) throw new Error('APIFY_TOKEN no configurado en .env');
+	if (!token) throw new Error('APIFY_TOKEN no configurado');
 	const input = { startUrls: buildSearchUrls(lat, lng).map(url => ({ url })), maxCrawledPlacesPerSearch: MAX_PER_TERM, maxCrawledPlaces: MAX_PER_TERM * SEARCH_TERMS.length, exportPlaceUrls: false, deeperCityScrape: false, scrapeContacts: true, scrapeReviewsPersonalData: false };
 	const runRes = await fetch(`https://api.apify.com/v2/acts/${ACTOR_ID}/runs?token=${token}&waitForFinish=${APIFY_WAIT}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
 	if (!runRes.ok) {
@@ -215,6 +215,10 @@ async function discover(lat: number, lng: number) {
 	const cached = await get<{ results_json: string; created_at: number }>(`SELECT results_json, created_at FROM discovery_cache WHERE zone_key = ?`, key);
 	if (cached && now - cached.created_at < CACHE_TTL) {
 		return { results: JSON.parse(cached.results_json) as DiscoveredPlace[], cached: true, cachedAt: cached.created_at * 1000, zone: key, imported: null };
+	}
+
+	if (!env.APIFY_TOKEN) {
+		return { results: [], cached: false, zone: key, imported: null, needsToken: true };
 	}
 
 	const rawItems = await runApifyScraper(lat, lng);
