@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.svelte-kit/
+build/
+.vercel/
+
+# Environment & secrets (¡nunca subir!)
+.env
+.env.*
+!.env.example
+
+# Base de datos local
+*.db
+*.db-journal
+*.db-wal
+
+# Logs y cache
+*.log
+npm-debug.log*
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Datos temporales / scrapers
+facebook-events.json
