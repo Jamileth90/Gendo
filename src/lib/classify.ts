@@ -77,12 +77,18 @@ export const TYPE_TO_CATEGORY: Record<string, GendoCategory> = {
 	playa:      'agua',
 	ciclismo:   'verde',
 	outdoor:    'verde',
+	sports:     'verde',
 	yoga:       'zen',
 	social:     'social',
 	live_music: 'social',
 	comedy:     'social',
 	festival:   'social',
 	nightlife:  'social',
+	food:       'social',
+	art:        'social',
+	theater:    'social',
+	dance:      'social',
+	other:      'social',
 };
 
 // ── Estilos visuales por categoría (Tailwind CSS) ─────────────────────────────

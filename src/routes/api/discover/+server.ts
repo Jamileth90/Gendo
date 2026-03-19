@@ -8,7 +8,9 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 import { all, get, run, exec } from '$lib/db/client';
 import { env } from '$env/dynamic/private';
-import { classify, CATEGORY_STYLE, CATEGORY_TO_TYPE } from '$lib/classify';
+import { classify, CATEGORY_STYLE, CATEGORY_TO_TYPE, TYPE_TO_CATEGORY } from '$lib/classify';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 
 const CACHE_TTL    = 24 * 60 * 60;
 const GEO_TTL      = 7  * 24 * 60 * 60;
@@ -155,6 +157,78 @@ async function runApifyScraper(lat: number, lng: number): Promise<unknown[]> {
 	return await dataRes.json() as unknown[];
 }
 
+/** Respaldo: eventos de facebook-events.json cuando Apify falla */
+function loadFacebookEventsFallback(): DiscoveredPlace[] {
+	const path = join(process.cwd(), 'facebook-events.json');
+	if (!existsSync(path)) return [];
+	try {
+		const raw = JSON.parse(readFileSync(path, 'utf8'));
+		const records = Array.isArray(raw) ? raw : [raw];
+		const results: DiscoveredPlace[] = [];
+		for (const rec of records) {
+			const name = (rec.name ?? rec.title ?? '').trim();
+			if (!name) continue;
+			const locationName = rec['location.name'] ?? rec.location?.name ?? '';
+			const locationCity = rec['location.city'] ?? rec.location?.city ?? '';
+			const address = [locationName, locationCity].filter(Boolean).join(', ') || 'Sin dirección';
+			const cat = classify(name, rec.organizedBy ?? '', address) ?? 'social';
+			results.push({
+				id: rec.url ?? `fb:${name}|${address}`,
+				title: name,
+				category: cat,
+				type: CATEGORY_TO_TYPE[cat],
+				lat: null,
+				lng: null,
+				address,
+				rating: null,
+				reviews: 0,
+				website: rec.url ?? null,
+				phone: null,
+				googleCat: locationCity || null,
+				style: CATEGORY_STYLE[cat],
+				source: 'discovery',
+			});
+		}
+		return results.slice(0, 50);
+	} catch {
+		return [];
+	}
+}
+
+/** Respaldo: eventos de la DB cuando no hay archivo ni Apify */
+async function loadDbEventsFallback(lat: number, lng: number): Promise<DiscoveredPlace[]> {
+	const now = Math.floor(Date.now() / 1000);
+	const rows = await all<{ id: number; title: string; type: string; address: string | null; lat: number | null; lng: number | null; source_url: string | null }>(
+		`SELECT e.id, e.title, e.type, v.address, e.lat, e.lng, e.source_url
+		 FROM events e
+		 LEFT JOIN venues v ON v.id = e.venue_id
+		 WHERE e.status = 'active' AND e.date_start >= ?
+		 ORDER BY e.date_start ASC LIMIT 50`,
+		now
+	);
+	const results: DiscoveredPlace[] = [];
+	for (const r of rows) {
+		const cat = TYPE_TO_CATEGORY[r.type] ?? (classify(r.title, r.address ?? '') ?? 'social');
+		results.push({
+			id: `db:${r.id}`,
+			title: r.title,
+			category: cat,
+			type: r.type,
+			lat: r.lat ?? null,
+			lng: r.lng ?? null,
+			address: r.address ?? '',
+			rating: null,
+			reviews: 0,
+			website: r.source_url ?? null,
+			phone: null,
+			googleCat: null,
+			style: CATEGORY_STYLE[cat],
+			source: 'discovery',
+		});
+	}
+	return results;
+}
+
 function filterAndClassify(items: unknown[]): DiscoveredPlace[] {
 	const results: DiscoveredPlace[] = [];
 	for (const raw of items) {
@@ -217,17 +291,34 @@ async function discover(lat: number, lng: number) {
 		return { results: JSON.parse(cached.results_json) as DiscoveredPlace[], cached: true, cachedAt: cached.created_at * 1000, zone: key, imported: null };
 	}
 
-	if (!env.APIFY_TOKEN) {
-		return { results: [], cached: false, zone: key, imported: null, needsToken: true };
+	let results: DiscoveredPlace[];
+	let imported: (ImportStats & { cityName: string; countryCode: string }) | null = null;
+	let usedFallback = false;
+
+	// Intentar Apify solo si hay token; si falla o no hay token → facebook-events.json o DB
+	if (env.APIFY_TOKEN) {
+		try {
+			const rawItems = await runApifyScraper(lat, lng);
+			results = filterAndClassify(rawItems);
+			imported = await persistToDb(results, lat, lng);
+		} catch (err) {
+			console.warn('[discover] Apify falló (créditos/límite), usando respaldo:', (err as Error).message?.slice(0, 80));
+			results = loadFacebookEventsFallback();
+			if (results.length === 0) results = await loadDbEventsFallback(lat, lng);
+			usedFallback = results.length > 0;
+		}
+	} else {
+		results = loadFacebookEventsFallback();
+		if (results.length === 0) results = await loadDbEventsFallback(lat, lng);
+		usedFallback = results.length > 0;
+		if (results.length === 0) return { results: [], cached: false, zone: key, imported: null, needsToken: true };
 	}
 
-	const rawItems = await runApifyScraper(lat, lng);
-	const results = filterAndClassify(rawItems);
-	const imported = await persistToDb(results, lat, lng);
+	if (results.length > 0 && !usedFallback) {
+		await run(`INSERT INTO discovery_cache (zone_key, results_json, count, created_at) VALUES (?, ?, ?, ?) ON CONFLICT(zone_key) DO UPDATE SET results_json = excluded.results_json, count = excluded.count, created_at = excluded.created_at`, key, JSON.stringify(results), results.length, now);
+	}
 
-	await run(`INSERT INTO discovery_cache (zone_key, results_json, count, created_at) VALUES (?, ?, ?, ?) ON CONFLICT(zone_key) DO UPDATE SET results_json = excluded.results_json, count = excluded.count, created_at = excluded.created_at`, key, JSON.stringify(results), results.length, now);
-
-	return { results, cached: false, zone: key, imported };
+	return { results, cached: false, zone: key, imported, usedFallback };
 }
 
 export const POST: RequestHandler = async ({ request }) => {

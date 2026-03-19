@@ -30,4 +30,4 @@ npm-debug.log*
 *.swo
 
 # Datos temporales / scrapers
-facebook-events.json
+# facebook-events.json — incluido como respaldo cuando Apify falla

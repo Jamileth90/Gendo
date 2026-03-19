@@ -796,6 +796,7 @@
 		let discovering      = false;
 		let discoveryError   = '';
 		let discoveryNeedsToken = false;
+		let discoveryUsedFallback = false;
 		let discoveryCached  = false;
 	let discoveryCachedAt: number | null = null;
 	// Filtro de categoría aplicado a la sección de descubrimiento
@@ -898,6 +899,7 @@
 		discovering         = true;
 		discoveryError      = '';
 		discoveryNeedsToken = false;
+		discoveryUsedFallback = false;
 		importStats         = null;
 		mapBounds           = null;
 		boundsEvents        = [];
@@ -913,6 +915,7 @@
 			discoveryCached    = d.cached    ?? false;
 			discoveryCachedAt  = d.cachedAt  ?? null;
 			discoveryNeedsToken = d.needsToken ?? false;
+			discoveryUsedFallback = d.usedFallback ?? false;
 			importStats        = d.imported  ?? null;
 			if (discoveredPlaces.length > 0) showMap = true;
 		} catch (e: unknown) {
@@ -1119,6 +1122,10 @@
 							{:else if discoveryCached && discoveryCachedAt}
 								<span class="text-xs text-gendo-text-muted bg-gendo-muted px-2 py-0.5 rounded-full">
 									📦 caché · {new Date(discoveryCachedAt).toLocaleDateString('es', { day: 'numeric', month: 'short' })}
+								</span>
+							{:else if discoveryUsedFallback}
+								<span class="text-xs text-amber-400/90 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+									📄 facebook-events.json
 								</span>
 							{/if}
 							<!-- Ciudad detectada -->
