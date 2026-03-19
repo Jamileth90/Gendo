@@ -59,16 +59,15 @@ export async function run(sql: string, ...args: unknown[]): Promise<DbRunResult>
 
 /** Ejecuta múltiples sentencias SQL (CREATE TABLE, etc.) */
 export async function exec(sql: string): Promise<void> {
-	// libsql execute solo corre una sentencia; para múltiples usamos batch
 	const statements = sql
 		.split(';')
 		.map((s) => s.trim())
 		.filter(Boolean);
 	if (statements.length === 0) return;
-	await client().batch(
-		statements.map((stmt) => ({ sql: stmt + ';', args: [] })),
-		'write'
-	);
+	const c = client();
+	for (const stmt of statements) {
+		await c.execute({ sql: stmt.endsWith(';') ? stmt : stmt + ';', args: [] });
+	}
 }
 
 export const db = { all, get, run, exec };
