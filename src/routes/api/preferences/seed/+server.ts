@@ -11,9 +11,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import type { Cookies } from '@sveltejs/kit';
 import { randomBytes } from 'crypto';
-import Database from 'better-sqlite3';
-
-const DB_PATH     = process.env.DATABASE_URL ?? './gendo.db';
+import { all, get, run } from '$lib/db/client';
 const ANON_COOKIE = 'gendo_anon';
 const MAX_AGE     = 60 * 60 * 24 * 365;
 
@@ -53,20 +51,15 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	let userId: number | null = null;
 	const token = cookies.get('gendo_session');
 	if (token) {
-		const db = new Database(DB_PATH);
-		try {
-			const u = db.prepare(`SELECT id FROM users WHERE session_token = ?`).get(token) as { id: number } | null;
-			userId = u?.id ?? null;
-		} finally { db.close(); }
+		const u = await get<{ id: number }>(`SELECT id FROM users WHERE session_token = ?`, token);
+		userId = u?.id ?? null;
 	}
 
-	const db = new Database(DB_PATH);
-	db.pragma('journal_mode = WAL');
-	try {
-		const now  = Math.floor(Date.now() / 1000);
+	const now = Math.floor(Date.now() / 1000);
 
-		// Transacción para insertar todos los seeds de golpe
-		const upsert = db.prepare(`
+	// Upsert cada seed (reemplaza la transacción con un loop de run)
+	for (const s of valid) {
+		await run(`
 			INSERT INTO user_preferences (session_id, user_id, category, click_count, last_seen)
 			VALUES (?, ?, ?, ?, ?)
 			ON CONFLICT(session_id, category)
@@ -74,25 +67,16 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 				click_count = click_count + excluded.click_count,
 				last_seen   = excluded.last_seen,
 				user_id     = COALESCE(excluded.user_id, user_id)
-		`);
-
-		const runAll = db.transaction(() => {
-			for (const s of valid) {
-				upsert.run(sessionId, userId, s.category.toLowerCase(), s.weight, now);
-			}
-		});
-		runAll();
-
-		// Devolver el estado actualizado
-		const prefs = db.prepare(`
-			SELECT category, click_count
-			FROM user_preferences
-			WHERE session_id = ?
-			ORDER BY click_count DESC
-		`).all(sessionId) as Array<{ category: string; click_count: number }>;
-
-		return json({ ok: true, seeded: valid.length, prefs });
-	} finally {
-		db.close();
+		`, sessionId, userId, s.category.toLowerCase(), s.weight, now);
 	}
+
+	// Devolver el estado actualizado
+	const prefs = await all<{ category: string; click_count: number }>(`
+		SELECT category, click_count
+		FROM user_preferences
+		WHERE session_id = ?
+		ORDER BY click_count DESC
+	`, sessionId);
+
+	return json({ ok: true, seeded: valid.length, prefs });
 };

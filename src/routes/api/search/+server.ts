@@ -14,11 +14,11 @@ export const GET: RequestHandler = async ({ url }) => {
 	if (!q || q.length < 1) return json({ events: [], suggestions: [], total: 0 });
 
 	if (suggest) {
-		const suggestions = getSearchSuggestions(q, 8);
+		const suggestions = await getSearchSuggestions(q, 8);
 		return json({ suggestions });
 	}
 
-	const results = searchEvents({ query: q, cityId, type, dateFilter, limit, offset });
+	const results = await searchEvents({ query: q, cityId, type, dateFilter, limit, offset });
 	return json({
 		events: results.map(r => ({ ...r.event, rank: r.rank, snippet: r.snippet })),
 		total: results.length,

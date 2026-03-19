@@ -13,7 +13,7 @@
  */
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
-import Database from 'better-sqlite3';
+import { all, get } from '$lib/db/client';
 
 // ── Clima: Open-Meteo (gratuito, sin API key) ─────────────────────────────────
 // Cedar Rapids, Iowa
@@ -94,8 +94,6 @@ async function fetchWeather(): Promise<WeatherInfo | null> {
 		return null;   // Si la API falla, seguimos sin clima
 	}
 }
-
-const DB_PATH = process.env.DATABASE_URL ?? './gendo.db';
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 type TimeSlot = 'morning' | 'afternoon' | 'evening' | 'night';
@@ -393,47 +391,43 @@ const SATURDAY_OVERRIDE: Record<Persona, MessageDef> = {
 
 // ── Handler ───────────────────────────────────────────────────────────────────
 export const GET: RequestHandler = async ({ cookies }) => {
-	const db = new Database(DB_PATH);
-	db.pragma('journal_mode = WAL');
+	const now        = new Date();
+	const hour       = now.getHours();
+	const dow        = now.getDay();   // 0 = domingo, 6 = sábado
+	const timeSlot   = getTimeSlot(hour);
+	const isSaturday = dow === 6;
 
-	try {
-		const now        = new Date();
-		const hour       = now.getHours();
-		const dow        = now.getDay();   // 0 = domingo, 6 = sábado
-		const timeSlot   = getTimeSlot(hour);
-		const isSaturday = dow === 6;
+	// ── 1. Usuario (si está logueado) ──────────────────────────────────────
+	let displayName: string | null = null;
+	let avatarUrl:   string | null = null;
+	let isLoggedIn = false;
 
-		// ── 1. Usuario (si está logueado) ──────────────────────────────────────
-		let displayName: string | null = null;
-		let avatarUrl:   string | null = null;
-		let isLoggedIn = false;
+	const sessionToken = cookies.get('gendo_session');
+	if (sessionToken) {
+		const user = await get<{ display_name: string | null; username: string; avatar_url: string | null }>(`
+			SELECT display_name, username, avatar_url
+			FROM users WHERE session_token = ?
+		`, sessionToken);
 
-		const sessionToken = cookies.get('gendo_session');
-		if (sessionToken) {
-			const user = db.prepare(`
-				SELECT display_name, username, avatar_url
-				FROM users WHERE session_token = ?
-			`).get(sessionToken) as { display_name: string | null; username: string; avatar_url: string | null } | undefined;
-
-			if (user) {
-				displayName = user.display_name || user.username;
-				avatarUrl   = user.avatar_url;
-				isLoggedIn  = true;
-			}
+		if (user) {
+			displayName = user.display_name || user.username;
+			avatarUrl   = user.avatar_url;
+			isLoggedIn  = true;
 		}
+	}
 
-		// ── 2. Preferencias → persona ──────────────────────────────────────────
-		const sessionId = cookies.get('gendo_anon') ?? '';
-		const prefMap   = new Map<string, number>();
+	// ── 2. Preferencias → persona ──────────────────────────────────────────
+	const sessionId = cookies.get('gendo_anon') ?? '';
+	const prefMap   = new Map<string, number>();
 
-		if (sessionId) {
-			const prefs = db.prepare(`
-				SELECT category, click_count FROM user_preferences
-				WHERE session_id = ? ORDER BY click_count DESC
-			`).all(sessionId) as Array<{ category: string; click_count: number }>;
+	if (sessionId) {
+		const prefs = await all<{ category: string; click_count: number }>(`
+			SELECT category, click_count FROM user_preferences
+			WHERE session_id = ? ORDER BY click_count DESC
+		`, sessionId);
 
-			for (const p of prefs) prefMap.set(p.category, p.click_count);
-		}
+		for (const p of prefs) prefMap.set(p.category, p.click_count);
+	}
 
 		const persona  = detectPersona(prefMap);
 		const hasPrefs = prefMap.size > 0;
@@ -498,9 +492,6 @@ export const GET: RequestHandler = async ({ cookies }) => {
 					isBad:       isBadWeather,
 				}
 				: null,
-			weatherOverride,
-		});
-	} finally {
-		db.close();
-	}
+		weatherOverride,
+	});
 }

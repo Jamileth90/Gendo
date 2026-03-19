@@ -1,12 +1,4 @@
-import Database from 'better-sqlite3';
-
-const DB_PATH = process.env.DATABASE_URL ?? './gendo.db';
-
-function getRawDb() {
-	const db = new Database(DB_PATH);
-	db.pragma('journal_mode = WAL');
-	return db;
-}
+import { all } from '$lib/db/client';
 
 export interface SearchResult {
 	event: Record<string, unknown>;
@@ -23,11 +15,10 @@ export interface SearchOptions {
 	offset?: number;
 }
 
-export function searchEvents(opts: SearchOptions): SearchResult[] {
+export async function searchEvents(opts: SearchOptions): Promise<SearchResult[]> {
 	const { query, cityId, type, limit = 20, offset = 0 } = opts;
 	if (!query.trim()) return [];
 
-	const db = getRawDb();
 	try {
 		const words = query.trim().split(/\s+/).filter(Boolean);
 		const ftsQuery = words.map((w, i) => {
@@ -44,7 +35,7 @@ export function searchEvents(opts: SearchOptions): SearchResult[] {
 		const cityFilter = cityId ? `AND e.city_id = ${cityId}` : '';
 		const typeFilter = type ? `AND e.type = '${type.replace(/'/g, "''")}'` : '';
 
-		const sql = `
+		const rows = await all<Record<string, unknown>>(`
 			SELECT e.*, v.name as v_name, v.address as v_address, v.website as v_website,
 				v.instagram as v_instagram, v.verified as v_verified,
 				c.name as c_name, c.country as c_country, c.state as c_state,
@@ -59,20 +50,16 @@ export function searchEvents(opts: SearchOptions): SearchResult[] {
 				${cityFilter} ${typeFilter}
 			ORDER BY e.featured DESC, rank
 			LIMIT ? OFFSET ?
-		`;
-
-		const rows = db.prepare(sql).all(ftsQuery, limit, offset) as Record<string, unknown>[];
+		`, ftsQuery, limit, offset);
 		return rows.map(row => ({ rank: row['rank'] as number, snippet: row['snippet'] as string, event: row }));
 	} catch {
-		return fallbackSearch(query, opts, db);
-	} finally {
-		db.close();
+		return fallbackSearch(query, opts);
 	}
 }
 
-function fallbackSearch(query: string, opts: SearchOptions, db: Database.Database): SearchResult[] {
+async function fallbackSearch(query: string, opts: SearchOptions): Promise<SearchResult[]> {
 	const now = Math.floor(Date.now() / 1000);
-	const rows = db.prepare(`
+	const rows = await all<Record<string, unknown>>(`
 		SELECT e.*, v.name as v_name, v.address as v_address,
 			c.name as c_name, c.country as c_country, c.state as c_state
 		FROM events e
@@ -82,17 +69,16 @@ function fallbackSearch(query: string, opts: SearchOptions, db: Database.Databas
 			AND e.status = 'active' AND e.date_start >= ?
 		ORDER BY e.featured DESC, e.date_start ASC
 		LIMIT ? OFFSET ?
-	`).all(`%${query}%`, `%${query}%`, `%${query}%`, now, opts.limit ?? 20, opts.offset ?? 0) as Record<string, unknown>[];
+	`, `%${query}%`, `%${query}%`, `%${query}%`, now, opts.limit ?? 20, opts.offset ?? 0);
 	return rows.map(row => ({ rank: 0, event: row }));
 }
 
-export function getSearchSuggestions(query: string, limit = 8): unknown[] {
+export async function getSearchSuggestions(query: string, limit = 8): Promise<unknown[]> {
 	if (!query || query.trim().length < 2) return [];
-	const db = getRawDb();
 	try {
 		const ftsQuery = `${query.trim().replace(/["'*^]/g, '')}*`;
 		const now = Math.floor(Date.now() / 1000);
-		return db.prepare(`
+		return await all(`
 			SELECT e.id, e.title, e.type, e.date_start, c.name as city_name
 			FROM events_fts
 			JOIN events e ON e.id = events_fts.rowid
@@ -100,6 +86,8 @@ export function getSearchSuggestions(query: string, limit = 8): unknown[] {
 			WHERE events_fts MATCH ? AND e.status = 'active' AND e.date_start >= ?
 			ORDER BY e.featured DESC, bm25(events_fts)
 			LIMIT ?
-		`).all(ftsQuery, now, limit);
-	} catch { return []; } finally { db.close(); }
+		`, ftsQuery, now, limit);
+	} catch {
+		return [];
+	}
 }

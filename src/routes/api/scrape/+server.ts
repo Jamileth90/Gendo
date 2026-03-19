@@ -3,10 +3,9 @@ import type { RequestHandler } from './$types';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { join } from 'path';
-import Database from 'better-sqlite3';
+import { all, get } from '$lib/db/client';
 
 const execAsync = promisify(exec);
-const DB_PATH = process.env.DATABASE_URL ?? './gendo.db';
 const SCRIPTS_DIR = join(process.cwd(), 'scripts');
 
 // Simple in-memory lock to avoid concurrent scraping
@@ -15,13 +14,14 @@ let lastScrapeAt: number | null = null;
 let lastScrapeResult: { added: number; total: number; duration: number } | null = null;
 
 export const GET: RequestHandler = async () => {
-	const db = new Database(DB_PATH);
-	db.pragma('journal_mode = WAL');
-
-	const total = (db.prepare(`SELECT COUNT(*) as n FROM events WHERE status='active'`).get() as { n: number }).n;
-	const bySource = db.prepare(`SELECT source, COUNT(*) as n FROM events WHERE status='active' GROUP BY source ORDER BY n DESC`).all() as { source: string; n: number }[];
-	const latest = db.prepare(`SELECT title, datetime(date_start,'unixepoch') as date, source FROM events WHERE status='active' ORDER BY created_at DESC LIMIT 10`).all();
-	db.close();
+	const totalRow = await get<{ n: number }>(`SELECT COUNT(*) as n FROM events WHERE status='active'`);
+	const total = totalRow?.n ?? 0;
+	const bySource = await all<{ source: string; n: number }>(
+		`SELECT source, COUNT(*) as n FROM events WHERE status='active' GROUP BY source ORDER BY n DESC`
+	);
+	const latest = await all<{ title: string; date: string; source: string }>(
+		`SELECT title, datetime(date_start,'unixepoch') as date, source FROM events WHERE status='active' ORDER BY created_at DESC LIMIT 10`
+	);
 
 	return json({
 		scrapeRunning,
@@ -43,9 +43,8 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	scrapeRunning = true;
 	const startTime = Date.now();
-	const db = new Database(DB_PATH);
-	const beforeCount = (db.prepare(`SELECT COUNT(*) as n FROM events WHERE status='active'`).get() as { n: number }).n;
-	db.close();
+	const beforeRow = await get<{ n: number }>(`SELECT COUNT(*) as n FROM events WHERE status='active'`);
+	const beforeCount = beforeRow?.n ?? 0;
 
 	// Run scraper in background
 	const script = source === 'meetup' ? 'scrape-meetup.mjs' : 'scrape-eventbrite.mjs';
@@ -53,10 +52,9 @@ export const POST: RequestHandler = async ({ request }) => {
 	const cmd = `node ${join(SCRIPTS_DIR, script)} ${args}`;
 
 	execAsync(cmd, { timeout: 20 * 60 * 1000 })
-		.then(() => {
-			const db2 = new Database(DB_PATH);
-			const afterCount = (db2.prepare(`SELECT COUNT(*) as n FROM events WHERE status='active'`).get() as { n: number }).n;
-			db2.close();
+		.then(async () => {
+			const afterRow = await get<{ n: number }>(`SELECT COUNT(*) as n FROM events WHERE status='active'`);
+			const afterCount = afterRow?.n ?? 0;
 
 			lastScrapeAt = Date.now();
 			lastScrapeResult = {

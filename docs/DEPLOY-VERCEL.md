@@ -133,6 +133,9 @@ Cuando tengas un dominio, en Vercel: **Settings** → **Domains** → **Add** y 
 
 ## Nota sobre la base de datos
 
-Gendo usa **better-sqlite3** en desarrollo local con el archivo `gendo.db`. En Vercel no hay disco persistente, por eso necesitas **Turso** para producción. La migración de código a Turso/libSQL está pendiente; mientras tanto, el build en Vercel funcionará, pero las rutas que usan la base de datos fallarán hasta que configures Turso y se complete la migración en el código.
+Gendo usa una capa unificada de base de datos (`@libsql/client`):
 
-Para desarrollo local, sigue usando `gendo.db` con SQLite como hasta ahora.
+- **Desarrollo local**: Si no hay `TURSO_DATABASE_URL`, usa SQLite local (`file:./gendo.db`).
+- **Producción (Vercel)**: Con `TURSO_DATABASE_URL` y `TURSO_AUTH_TOKEN`, usa Turso. Los datos persisten en la nube.
+
+La migración a Turso está completa. Solo necesitas crear la base de datos en Turso, migrar tus datos (si los tienes en `gendo.db`) y configurar las variables de entorno en Vercel.

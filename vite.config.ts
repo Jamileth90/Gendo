@@ -5,7 +5,6 @@ export default defineConfig({
 	plugins: [sveltekit()],
 	ssr: {
 		external: [
-			'better-sqlite3',
 			'node-cron',
 			'node-ical',
 			'rss-parser',

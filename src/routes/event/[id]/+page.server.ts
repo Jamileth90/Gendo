@@ -1,55 +1,50 @@
 import type { PageServerLoad } from './$types';
-import Database from 'better-sqlite3';
+import { all, get } from '$lib/db/client';
 import { error } from '@sveltejs/kit';
 import { getEventComments, getEventRsvp, getUserByToken } from '$lib/social/db';
-
-const DB_PATH = process.env.DATABASE_URL ?? './gendo.db';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
 	const id = Number(params.id);
 	if (!id) throw error(404, 'Event not found');
 
-	const db = new Database(DB_PATH);
-	db.pragma('journal_mode = WAL');
+	const ev = await get<Record<string, unknown>>(`
+		SELECT
+			e.*,
+			v.id as venue_id, v.name as venue_name, v.type as venue_type,
+			v.address, v.lat as v_lat, v.lng as v_lng, v.website, v.instagram,
+			v.description as venue_desc,
+			c.id as city_id, c.name as city_name, c.country, c.state
+		FROM events e
+		LEFT JOIN venues v ON v.id = e.venue_id
+		LEFT JOIN cities c ON c.id = e.city_id
+		WHERE e.id = ? AND e.status = 'active'
+	`, id);
 
-	try {
-		const ev = db.prepare(`
-			SELECT
-				e.*,
-				v.id as venue_id, v.name as venue_name, v.type as venue_type,
-				v.address, v.lat as v_lat, v.lng as v_lng, v.website, v.instagram,
-				v.description as venue_desc,
-				c.id as city_id, c.name as city_name, c.country, c.state
-			FROM events e
-			LEFT JOIN venues v ON v.id = e.venue_id
-			LEFT JOIN cities c ON c.id = e.city_id
-			WHERE e.id = ? AND e.status = 'active'
-		`).get(id) as Record<string, unknown> | undefined;
+	if (!ev) throw error(404, 'Event not found');
 
-		if (!ev) throw error(404, 'Event not found');
+	const now = Math.floor(Date.now() / 1000);
+	// Related events (same city/type)
+	const related = await all<Record<string, unknown>>(`
+		SELECT e.id, e.title, e.date_start, e.type, e.price, e.price_amount,
+			v.name as venue_name
+		FROM events e
+		LEFT JOIN venues v ON v.id = e.venue_id
+		WHERE e.city_id = ? AND e.type = ? AND e.id != ? AND e.status = 'active'
+			AND e.date_start >= ?
+		ORDER BY e.date_start ASC LIMIT 4
+	`, ev['city_id'], ev['type'], id, now);
 
-		// Related events (same city/type)
-		const related = db.prepare(`
-			SELECT e.id, e.title, e.date_start, e.type, e.price, e.price_amount,
-				v.name as venue_name
-			FROM events e
-			LEFT JOIN venues v ON v.id = e.venue_id
-			WHERE e.city_id = ? AND e.type = ? AND e.id != ? AND e.status = 'active'
-				AND e.date_start >= strftime('%s', 'now')
-			ORDER BY e.date_start ASC LIMIT 4
-		`).all(ev['city_id'], ev['type'], id) as Record<string, unknown>[];
+	const token = cookies.get('gendo_session');
+	const currentUser = token ? await getUserByToken(token) : null;
 
-		const token = cookies.get('gendo_session');
-		const currentUser = token ? getUserByToken(token) : null;
+	const comments = await getEventComments(id, currentUser?.id);
+	const rsvp = await getEventRsvp(id);
 
-		const comments = getEventComments(id, currentUser?.id);
-		const rsvp = getEventRsvp(id);
-
-		let userRsvpStatus: string | null = null;
-		if (currentUser) {
-			const r = db.prepare(`SELECT status FROM event_rsvp WHERE event_id = ? AND user_id = ?`).get(id, currentUser.id) as { status: string } | null;
-			userRsvpStatus = r?.status ?? null;
-		}
+	let userRsvpStatus: string | null = null;
+	if (currentUser) {
+		const r = await get<{ status: string }>(`SELECT status FROM event_rsvp WHERE event_id = ? AND user_id = ?`, id, currentUser.id);
+		userRsvpStatus = r?.status ?? null;
+	}
 
 		return {
 			event: {
@@ -100,7 +95,4 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 				venueName: r['venue_name'] as string | null
 			}))
 		};
-	} finally {
-		db.close();
-	}
 };

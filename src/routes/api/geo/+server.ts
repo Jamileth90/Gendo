@@ -10,9 +10,7 @@
  */
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import Database from 'better-sqlite3';
-
-const DB_PATH = process.env.DATABASE_URL ?? './gendo.db';
+import { all, get, run } from '$lib/db/client';
 
 // ── Haversine ────────────────────────────────────────────────────────────────
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -74,118 +72,111 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		return json({ error: 'lat y lng son requeridos' }, { status: 400 });
 	}
 
-	const db = new Database(DB_PATH);
-	db.pragma('journal_mode = WAL');
+	// 1. Cargar todas las ciudades con coordenadas (son pocas, < 100)
+	const cities = await all<{ id: number; name: string; country: string; state: string | null; lat: number; lng: number }>(`
+		SELECT id, name, country, state, lat, lng
+		FROM cities
+		WHERE lat IS NOT NULL AND lng IS NOT NULL
+	`);
 
-	try {
-		// 1. Cargar todas las ciudades con coordenadas (son pocas, < 100)
-		const cities = db.prepare(`
-			SELECT id, name, country, state, lat, lng
-			FROM cities
-			WHERE lat IS NOT NULL AND lng IS NOT NULL
-		`).all() as Array<{ id: number; name: string; country: string; state: string | null; lat: number; lng: number }>;
-
-		if (cities.length === 0) {
-			return json({ nearestCity: null, suggestions: [], distanceKm: null });
-		}
-
-		// 2. Encontrar la ciudad más cercana con Haversine
-		let nearestCity = cities[0];
-		let minDist = haversineKm(lat, lng, cities[0].lat, cities[0].lng);
-
-		for (const city of cities.slice(1)) {
-			const d = haversineKm(lat, lng, city.lat, city.lng);
-			if (d < minDist) { minDist = d; nearestCity = city; }
-		}
-
-		// 3. Obtener preferencias completas + detectar persona
-		const sessionId = cookies.get('gendo_anon') ?? '';
-		let topCategories: string[] = [];
-		const prefMap = new Map<string, number>();
-
-		if (sessionId) {
-			const prefs = db.prepare(`
-				SELECT category, click_count FROM user_preferences
-				WHERE session_id = ?
-				ORDER BY click_count DESC, last_seen DESC
-			`).all(sessionId) as Array<{ category: string; click_count: number }>;
-
-			for (const p of prefs) prefMap.set(p.category, p.click_count);
-			topCategories = prefs.slice(0, 4).map(p => p.category);
-		}
-
-		const persona = detectPersona(prefMap);
-
-		// Fallback: si no hay preferencias, usar categorías populares en esa ciudad
-		if (topCategories.length === 0) {
-			const popular = db.prepare(`
-				SELECT type, COUNT(*) as n FROM events
-				WHERE city_id = ? AND status = 'active'
-				GROUP BY type ORDER BY n DESC LIMIT 3
-			`).all(nearestCity.id) as Array<{ type: string }>;
-			topCategories = popular.map(p => p.type);
-		}
-
-		// 4. Buscar eventos en la ciudad cercana que coincidan con las categorías favoritas
-		const now = Math.floor(Date.now() / 1000);
-		const placeholders = topCategories.map(() => '?').join(', ');
-
-		const suggestions = topCategories.length > 0
-			? db.prepare(`
-				SELECT e.id, e.title, e.type, e.date_start, e.price,
-					e.price_amount, e.source_url, e.image_url,
-					v.name  as venue_name,
-					v.lat   as venue_lat,
-					v.lng   as venue_lng
-				FROM events e
-				LEFT JOIN venues v ON v.id = e.venue_id
-				WHERE e.city_id = ?
-				  AND e.status = 'active'
-				  AND e.date_start >= ?
-				  AND e.type IN (${placeholders})
-				ORDER BY e.featured DESC, e.date_start ASC
-				LIMIT 6
-			`).all(nearestCity.id, now, ...topCategories) as Array<Record<string, unknown>>
-			: [];
-
-		// 5. Construir mensajes contextuales por categoría
-		const contextMessages = topCategories.map(cat => ({
-			category: cat,
-			activityLabel: ACTIVITY_LABEL[cat] ?? 'actividades',
-			count: suggestions.filter(s => s['type'] === cat).length,
-		})).filter(c => c.count > 0);
-
-		return json({
-			nearestCity: {
-				id:      nearestCity.id,
-				name:    nearestCity.name,
-				country: nearestCity.country,
-				state:   nearestCity.state,
-				lat:     nearestCity.lat,
-				lng:     nearestCity.lng,
-			},
-			distanceKm:      Math.round(minDist),
-			topCategories,
-			persona,          // 'naturaleza' | 'noche' | 'cultura' | 'zen' | 'neutral'
-			hasPreferences:  prefMap.size > 0,
-			suggestions: suggestions.map(s => ({
-				id:         s['id'],
-				title:      s['title'],
-				type:       s['type'],
-				dateStart:  (s['date_start'] as number) * 1000,
-				price:      s['price'],
-				priceAmount: s['price_amount'],
-				sourceUrl:  s['source_url'],
-				imageUrl:   s['image_url'],
-				venueName:  s['venue_name'],
-				venueLat:   s['venue_lat'],
-				venueLng:   s['venue_lng'],
-			})),
-			contextMessages,
-		});
-	} finally {
-		db.close();
+	if (cities.length === 0) {
+		return json({ nearestCity: null, suggestions: [], distanceKm: null });
 	}
+
+	// 2. Encontrar la ciudad más cercana con Haversine
+	let nearestCity = cities[0];
+	let minDist = haversineKm(lat, lng, cities[0].lat, cities[0].lng);
+
+	for (const city of cities.slice(1)) {
+		const d = haversineKm(lat, lng, city.lat, city.lng);
+		if (d < minDist) { minDist = d; nearestCity = city; }
+	}
+
+	// 3. Obtener preferencias completas + detectar persona
+	const sessionId = cookies.get('gendo_anon') ?? '';
+	let topCategories: string[] = [];
+	const prefMap = new Map<string, number>();
+
+	if (sessionId) {
+		const prefs = await all<{ category: string; click_count: number }>(`
+			SELECT category, click_count FROM user_preferences
+			WHERE session_id = ?
+			ORDER BY click_count DESC, last_seen DESC
+		`, sessionId);
+
+		for (const p of prefs) prefMap.set(p.category, p.click_count);
+		topCategories = prefs.slice(0, 4).map(p => p.category);
+	}
+
+	const persona = detectPersona(prefMap);
+
+	// Fallback: si no hay preferencias, usar categorías populares en esa ciudad
+	if (topCategories.length === 0) {
+		const popular = await all<{ type: string }>(`
+			SELECT type, COUNT(*) as n FROM events
+			WHERE city_id = ? AND status = 'active'
+			GROUP BY type ORDER BY n DESC LIMIT 3
+		`, nearestCity.id);
+		topCategories = popular.map(p => p.type);
+	}
+
+	// 4. Buscar eventos en la ciudad cercana que coincidan con las categorías favoritas
+	const now = Math.floor(Date.now() / 1000);
+	const placeholders = topCategories.map(() => '?').join(', ');
+
+	const suggestions = topCategories.length > 0
+		? await all<Record<string, unknown>>(`
+			SELECT e.id, e.title, e.type, e.date_start, e.price,
+				e.price_amount, e.source_url, e.image_url,
+				v.name  as venue_name,
+				v.lat   as venue_lat,
+				v.lng   as venue_lng
+			FROM events e
+			LEFT JOIN venues v ON v.id = e.venue_id
+			WHERE e.city_id = ?
+			  AND e.status = 'active'
+			  AND e.date_start >= ?
+			  AND e.type IN (${placeholders})
+			ORDER BY e.featured DESC, e.date_start ASC
+			LIMIT 6
+		`, nearestCity.id, now, ...topCategories)
+		: [];
+
+	// 5. Construir mensajes contextuales por categoría
+	const contextMessages = topCategories.map(cat => ({
+		category: cat,
+		activityLabel: ACTIVITY_LABEL[cat] ?? 'actividades',
+		count: suggestions.filter(s => s['type'] === cat).length,
+	})).filter(c => c.count > 0);
+
+	return json({
+		nearestCity: {
+			id:      nearestCity.id,
+			name:    nearestCity.name,
+			country: nearestCity.country,
+			state:   nearestCity.state,
+			lat:     nearestCity.lat,
+			lng:     nearestCity.lng,
+		},
+		distanceKm:      Math.round(minDist),
+		topCategories,
+		persona,          // 'naturaleza' | 'noche' | 'cultura' | 'zen' | 'neutral'
+		hasPreferences:  prefMap.size > 0,
+		suggestions: suggestions.map(s => ({
+			id:         s['id'],
+			title:      s['title'],
+			type:       s['type'],
+			dateStart:  (s['date_start'] as number) * 1000,
+			price:      s['price'],
+			priceAmount: s['price_amount'],
+			sourceUrl:  s['source_url'],
+			imageUrl:   s['image_url'],
+			venueName:  s['venue_name'],
+			venueLat:   s['venue_lat'],
+			venueLng:   s['venue_lng'],
+		})),
+		contextMessages,
+	});
 };
 
 // ── POST /api/geo — guardar ubicación de casa ─────────────────────────────────
@@ -201,13 +192,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	// Guardar en el perfil del usuario si está logueado
 	const token = cookies.get('gendo_session');
 	if (token) {
-		const db = new Database(DB_PATH);
-		db.pragma('journal_mode = WAL');
-		try {
-			db.prepare(`UPDATE users SET home_lat = ?, home_lng = ? WHERE session_token = ?`).run(lat, lng, token);
-		} finally {
-			db.close();
-		}
+		await run(`UPDATE users SET home_lat = ?, home_lng = ? WHERE session_token = ?`, lat, lng, token);
 	}
 
 	// También lo devolvemos para que el frontend lo guarde en localStorage

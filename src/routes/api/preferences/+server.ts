@@ -7,9 +7,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import type { Cookies } from '@sveltejs/kit';
 import { randomBytes } from 'crypto';
-import Database from 'better-sqlite3';
-
-const DB_PATH = process.env.DATABASE_URL ?? './gendo.db';
+import { all, get, run } from '$lib/db/client';
 
 const ANON_COOKIE   = 'gendo_anon';
 const ANON_MAX_AGE  = 60 * 60 * 24 * 365; // 1 año
@@ -51,42 +49,33 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	let userId: number | null = null;
 	const token = cookies.get('gendo_session');
 	if (token) {
-		const db = new Database(DB_PATH);
-		try {
-			const u = db.prepare(`SELECT id FROM users WHERE session_token = ?`).get(token) as { id: number } | null;
-			userId = u?.id ?? null;
-		} finally { db.close(); }
+		const u = await get<{ id: number }>(`SELECT id FROM users WHERE session_token = ?`, token);
+		userId = u?.id ?? null;
 	}
 
-	const db = new Database(DB_PATH);
-	db.pragma('journal_mode = WAL');
-	try {
-		const now = Math.floor(Date.now() / 1000);
+	const now = Math.floor(Date.now() / 1000);
 
-		// UPSERT: si ya existe esa categoría para esta sesión, incrementa el contador
-		db.prepare(`
-			INSERT INTO user_preferences (session_id, user_id, category, click_count, last_seen)
-			VALUES (?, ?, ?, 1, ?)
-			ON CONFLICT(session_id, category)
-			DO UPDATE SET
-				click_count = click_count + 1,
-				last_seen   = excluded.last_seen,
-				user_id     = COALESCE(excluded.user_id, user_id)
-		`).run(sessionId, userId, category, now);
+	// UPSERT: si ya existe esa categoría para esta sesión, incrementa el contador
+	await run(`
+		INSERT INTO user_preferences (session_id, user_id, category, click_count, last_seen)
+		VALUES (?, ?, ?, 1, ?)
+		ON CONFLICT(session_id, category)
+		DO UPDATE SET
+			click_count = click_count + 1,
+			last_seen   = excluded.last_seen,
+			user_id     = COALESCE(excluded.user_id, user_id)
+	`, sessionId, userId, category, now);
 
-		// Devuelve el top actualizado para feedback inmediato
-		const top = db.prepare(`
-			SELECT category, click_count
-			FROM user_preferences
-			WHERE session_id = ?
-			ORDER BY click_count DESC, last_seen DESC
-			LIMIT 5
-		`).all(sessionId) as Array<{ category: string; click_count: number }>;
+	// Devuelve el top actualizado para feedback inmediato
+	const top = await all<{ category: string; click_count: number }>(`
+		SELECT category, click_count
+		FROM user_preferences
+		WHERE session_id = ?
+		ORDER BY click_count DESC, last_seen DESC
+		LIMIT 5
+	`, sessionId);
 
-		return json({ ok: true, top });
-	} finally {
-		db.close();
-	}
+	return json({ ok: true, top });
 };
 
 // ── GET — obtener preferencias del usuario actual ────────────────────────
@@ -95,25 +84,20 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 	const sessionId = getOrCreateSessionId(cookies);
 	const limit = Math.min(Number(url.searchParams.get('limit') ?? 10), 20);
 
-	const db = new Database(DB_PATH);
-	db.pragma('journal_mode = WAL');
-	try {
-		const prefs = db.prepare(`
-			SELECT category, click_count, last_seen
-			FROM user_preferences
-			WHERE session_id = ?
-			ORDER BY click_count DESC, last_seen DESC
-			LIMIT ?
-		`).all(sessionId, limit) as Array<{ category: string; click_count: number; last_seen: number }>;
+	const prefs = await all<{ category: string; click_count: number; last_seen: number }>(`
+		SELECT category, click_count, last_seen
+		FROM user_preferences
+		WHERE session_id = ?
+		ORDER BY click_count DESC, last_seen DESC
+		LIMIT ?
+	`, sessionId, limit);
 
-		const total = (db.prepare(`
-			SELECT SUM(click_count) as total FROM user_preferences WHERE session_id = ?
-		`).get(sessionId) as { total: number | null }).total ?? 0;
+	const totalRow = await get<{ total: number | null }>(`
+		SELECT SUM(click_count) as total FROM user_preferences WHERE session_id = ?
+	`, sessionId);
+	const total = totalRow?.total ?? 0;
 
-		return json({ prefs, total, sessionId: sessionId.slice(0, 8) + '…' });
-	} finally {
-		db.close();
-	}
+	return json({ prefs, total, sessionId: sessionId.slice(0, 8) + '…' });
 };
 
 // ── DELETE — borrar historial ─────────────────────────────────────────────
@@ -122,13 +106,7 @@ export const DELETE: RequestHandler = async ({ cookies }) => {
 	const sessionId = cookies.get(ANON_COOKIE);
 	if (!sessionId) return json({ ok: true, deleted: 0 });
 
-	const db = new Database(DB_PATH);
-	db.pragma('journal_mode = WAL');
-	try {
-		const result = db.prepare(`DELETE FROM user_preferences WHERE session_id = ?`).run(sessionId);
-		cookies.delete(ANON_COOKIE, { path: '/' });
-		return json({ ok: true, deleted: result.changes });
-	} finally {
-		db.close();
-	}
+	const result = await run(`DELETE FROM user_preferences WHERE session_id = ?`, sessionId);
+	cookies.delete(ANON_COOKIE, { path: '/' });
+	return json({ ok: true, deleted: result.changes });
 };

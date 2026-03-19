@@ -15,10 +15,9 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { join } from 'path';
 import { existsSync } from 'fs';
-import Database from 'better-sqlite3';
+import { all, get } from '$lib/db/client';
 
 const execAsync = promisify(exec);
-const DB_PATH = process.env.DATABASE_URL ?? './gendo.db';
 const SCRIPTS_DIR = join(process.cwd(), 'scripts');
 const ROOT_DIR = process.cwd();
 
@@ -42,9 +41,8 @@ async function runScript(name: string): Promise<{ ok: boolean; msg: string }> {
 async function runRefresh() {
 	refreshRunning = true;
 	lastRefreshLog = [];
-	const db = new Database(DB_PATH);
-	const before = (db.prepare(`SELECT COUNT(*) as n FROM events WHERE status='active'`).get() as { n: number }).n;
-	db.close();
+	const beforeRow = await get<{ n: number }>(`SELECT COUNT(*) as n FROM events WHERE status='active'`);
+	const before = beforeRow?.n ?? 0;
 
 	// 1. Eventbrite
 	lastRefreshLog.push('▶ Eventbrite...');
@@ -79,12 +77,11 @@ async function runRefresh() {
 	const r4 = await runScript('scrape-cr-live.mjs');
 	lastRefreshLog.push(r4.ok ? `✅ ${r4.msg}` : `⚠️ ${r4.msg}`);
 
-	const db2 = new Database(DB_PATH);
-	const after = (db2.prepare(`SELECT COUNT(*) as n FROM events WHERE status='active'`).get() as { n: number }).n;
-	const bySource = db2.prepare(
+	const afterRow = await get<{ n: number }>(`SELECT COUNT(*) as n FROM events WHERE status='active'`);
+	const after = afterRow?.n ?? 0;
+	const bySource = await all<{ source: string; n: number }>(
 		`SELECT source, COUNT(*) as n FROM events WHERE status='active' GROUP BY source ORDER BY n DESC`
-	).all() as { source: string; n: number }[];
-	db2.close();
+	);
 
 	lastRefreshAt = Date.now();
 	lastRefreshLog.push(`📊 Total: ${after} eventos (+${after - before})`);
@@ -93,12 +90,11 @@ async function runRefresh() {
 }
 
 export const GET: RequestHandler = async () => {
-	const db = new Database(DB_PATH);
-	const total = (db.prepare(`SELECT COUNT(*) as n FROM events WHERE status='active'`).get() as { n: number }).n;
-	const bySource = db.prepare(
+	const totalRow = await get<{ n: number }>(`SELECT COUNT(*) as n FROM events WHERE status='active'`);
+	const total = totalRow?.n ?? 0;
+	const bySource = await all<{ source: string; n: number }>(
 		`SELECT source, COUNT(*) as n FROM events WHERE status='active' GROUP BY source ORDER BY n DESC`
-	).all() as { source: string; n: number }[];
-	db.close();
+	);
 
 	return json({
 		refreshRunning,

@@ -1,8 +1,6 @@
 import type { PageServerLoad } from './$types';
-import Database from 'better-sqlite3';
+import { all, get } from '$lib/db/client';
 import { cleanupPastEvents } from '$lib/db/cleanup';
-
-const DB_PATH = process.env.DATABASE_URL ?? './gendo.db';
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 interface RawEvent { [key: string]: unknown }
@@ -285,58 +283,54 @@ function mapEvent(e: RawEvent, score: number, reasons: string[]) {
 // ── Load ─────────────────────────────────────────────────────────────────────
 export const load: PageServerLoad = async ({ cookies }) => {
 	// Limpieza automática: borrar eventos pasados (throttled a cada 6 h)
-	cleanupPastEvents();
+	await cleanupPastEvents();
 
-	const db = new Database(DB_PATH);
-	db.pragma('journal_mode = WAL');
+	const now      = Math.floor(Date.now() / 1000);
+	const hour     = new Date().getHours();
+	const timeSlot = getTimeSlot(hour);
 
-	try {
-		const now      = Math.floor(Date.now() / 1000);
-		const hour     = new Date().getHours();
-		const timeSlot = getTimeSlot(hour);
+	// ── 1. Preferencias del usuario ───────────────────────────────────────
+	const sessionId = cookies.get('gendo_anon') ?? '';
+	const prefMap   = new Map<string, number>();
 
-		// ── 1. Preferencias del usuario ───────────────────────────────────────
-		const sessionId = cookies.get('gendo_anon') ?? '';
-		const prefMap   = new Map<string, number>();
+	if (sessionId) {
+		const prefs = await all<{ category: string; click_count: number }>(`
+			SELECT category, click_count
+			FROM user_preferences
+			WHERE session_id = ?
+			ORDER BY click_count DESC
+		`, sessionId);
 
-		if (sessionId) {
-			const prefs = db.prepare(`
-				SELECT category, click_count
-				FROM user_preferences
-				WHERE session_id = ?
-				ORDER BY click_count DESC
-			`).all(sessionId) as Array<{ category: string; click_count: number }>;
+		for (const p of prefs) prefMap.set(p.category, p.click_count);
+	}
 
-			for (const p of prefs) prefMap.set(p.category, p.click_count);
-		}
+	// ── 2. Eventos destacados ─────────────────────────────────────────────
+	const featuredRaw = await all<RawEvent>(`
+		SELECT e.id, e.title, e.description, e.date_start, e.type,
+			e.price, e.price_amount, e.currency, e.image_url, e.tags, e.featured,
+			v.name as venue_name, v.address, v.type as venue_type,
+			v.lat as venue_lat, v.lng as venue_lng,
+			c.id as city_id, c.name as city_name, c.country, c.state
+		FROM events e
+		LEFT JOIN venues v ON v.id = e.venue_id
+		LEFT JOIN cities c ON c.id = e.city_id
+		WHERE e.status = 'active' AND e.date_start >= ? AND e.featured = 1
+		ORDER BY e.date_start ASC LIMIT 6
+	`, now);
 
-		// ── 2. Eventos destacados ─────────────────────────────────────────────
-		const featuredRaw = db.prepare(`
-			SELECT e.id, e.title, e.description, e.date_start, e.type,
-				e.price, e.price_amount, e.currency, e.image_url, e.tags, e.featured,
-				v.name as venue_name, v.address, v.type as venue_type,
-				v.lat as venue_lat, v.lng as venue_lng,
-				c.id as city_id, c.name as city_name, c.country, c.state
-			FROM events e
-			LEFT JOIN venues v ON v.id = e.venue_id
-			LEFT JOIN cities c ON c.id = e.city_id
-			WHERE e.status = 'active' AND e.date_start >= ? AND e.featured = 1
-			ORDER BY e.date_start ASC LIMIT 6
-		`).all(now) as RawEvent[];
-
-		// ── 3. Pool de eventos próximos (mayor del que necesitamos para ranking) ─
-		const upcomingRaw = db.prepare(`
-			SELECT e.id, e.title, e.description, e.date_start, e.type,
-				e.price, e.price_amount, e.currency, e.tags, e.featured,
-				v.name as venue_name, v.address, v.type as venue_type,
-				v.lat as venue_lat, v.lng as venue_lng,
-				c.id as city_id, c.name as city_name, c.country, c.state
-			FROM events e
-			LEFT JOIN venues v ON v.id = e.venue_id
-			LEFT JOIN cities c ON c.id = e.city_id
-			WHERE e.status = 'active' AND e.date_start >= ?
-			ORDER BY e.date_start ASC LIMIT 120
-		`).all(now) as RawEvent[];
+	// ── 3. Pool de eventos próximos (mayor del que necesitamos para ranking) ─
+	const upcomingRaw = await all<RawEvent>(`
+		SELECT e.id, e.title, e.description, e.date_start, e.type,
+			e.price, e.price_amount, e.currency, e.tags, e.featured,
+			v.name as venue_name, v.address, v.type as venue_type,
+			v.lat as venue_lat, v.lng as venue_lng,
+			c.id as city_id, c.name as city_name, c.country, c.state
+		FROM events e
+		LEFT JOIN venues v ON v.id = e.venue_id
+		LEFT JOIN cities c ON c.id = e.city_id
+		WHERE e.status = 'active' AND e.date_start >= ?
+		ORDER BY e.date_start ASC LIMIT 120
+	`, now);
 
 		// ── 4. Aplicar getRecommendedEvents ───────────────────────────────────
 		// Deduplicar raw por id y por clave semántica (title+date+venue) para evitar duplicados de distintas fuentes
@@ -367,7 +361,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 			.map(({ raw, score, reasons }) => mapEvent(raw, score, reasons));
 
 		// ── 5. Top 6 ciudades por estado/país (sin duplicar nombre+estado+país) ─────────────
-		const citiesRaw = db.prepare(`
+		const citiesRaw = await all<{ id: number; name: string; country: string; countryCode: string; state: string | null; lat: number | null; lng: number | null; event_count: number }>(`
 			SELECT c.id, c.name, c.country, c.country_code AS countryCode, c.state, c.lat, c.lng,
 				COUNT(e.id) as event_count
 			FROM cities c
@@ -375,7 +369,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 			GROUP BY c.id
 			HAVING event_count > 0
 			ORDER BY event_count DESC, c.name ASC
-		`).all(now) as Array<{ id: number; name: string; country: string; countryCode: string; state: string | null; lat: number | null; lng: number | null; event_count: number }>;
+		`, now);
 
 		// Deduplicar en JS: una entrada por (name, countryCode, state), la de mayor event_count
 		const citiesByKey = new Map<string, typeof citiesRaw[0]>();
@@ -406,12 +400,13 @@ export const load: PageServerLoad = async ({ cookies }) => {
 		cities = Array.from(finalByKey.values()).sort((a, b) => b.event_count - a.event_count);
 
 		// ── 6. Stats ──────────────────────────────────────────────────────────
-		const stats = db.prepare(`
+		const statsRow = await get<{ total_events: number; total_cities: number; total_venues: number }>(`
 			SELECT
 				(SELECT COUNT(*) FROM events WHERE status='active' AND date_start >= ?) as total_events,
 				(SELECT COUNT(*) FROM cities) as total_cities,
 				(SELECT COUNT(*) FROM venues WHERE active=1) as total_venues
-		`).get(now) as { total_events: number; total_cities: number; total_venues: number };
+		`, now);
+		const stats = statsRow ?? { total_events: 0, total_cities: 0, total_venues: 0 };
 
 		// ── 7. Contexto de ranking para la UI ─────────────────────────────────
 		const topUserCategories = [...prefMap.entries()]
@@ -449,7 +444,4 @@ export const load: PageServerLoad = async ({ cookies }) => {
 				persona,  // 'naturaleza' | 'noche' | 'cultura' | 'zen' | 'neutral'
 			},
 		};
-	} finally {
-		db.close();
-	}
 };
