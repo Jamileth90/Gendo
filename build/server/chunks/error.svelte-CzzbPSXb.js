@@ -1,0 +1,44 @@
+import { c as create_ssr_component, f as validate_store, g as subscribe, e as escape, h as getContext } from './ssr-0v8FJN9_.js';
+import './client-Bl3EK09E.js';
+import './ssr2-R745vEo4.js';
+
+const getStores = () => {
+  const stores = getContext("__svelte__");
+  return {
+    /** @type {typeof page} */
+    page: {
+      subscribe: stores.page.subscribe
+    },
+    /** @type {typeof navigating} */
+    navigating: {
+      subscribe: stores.navigating.subscribe
+    },
+    /** @type {typeof updated} */
+    updated: stores.updated
+  };
+};
+const page = {
+  subscribe(fn) {
+    const store = get_store("page");
+    return store.subscribe(fn);
+  }
+};
+function get_store(name) {
+  try {
+    return getStores()[name];
+  } catch {
+    throw new Error(
+      `Cannot subscribe to '${name}' store on the server outside of a Svelte component, as it is bound to the current request via component context. This prevents state from leaking between users.For more information, see https://svelte.dev/docs/kit/state-management#avoid-shared-state-on-the-server`
+    );
+  }
+}
+const Error$1 = create_ssr_component(($$result, $$props, $$bindings, slots) => {
+  let $page, $$unsubscribe_page;
+  validate_store(page, "page");
+  $$unsubscribe_page = subscribe(page, (value) => $page = value);
+  $$unsubscribe_page();
+  return `<h1>${escape($page.status)}</h1> <p>${escape($page.error?.message)}</p>`;
+});
+
+export { Error$1 as default };
+//# sourceMappingURL=error.svelte-CzzbPSXb.js.map

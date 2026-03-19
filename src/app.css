@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	--font-sans: 'Instrument Sans', system-ui, sans-serif;
+	--safe-top: env(safe-area-inset-top, 0px);
+	--safe-bottom: env(safe-area-inset-bottom, 0px);
+	--safe-left: env(safe-area-inset-left, 0px);
+	--safe-right: env(safe-area-inset-right, 0px);
+	/* Minimal palette */
+	--gendo-bg: #0c0c0e;
+	--gendo-surface: #141416;
+	--gendo-accent: #e07a5f;
+	--gendo-accent-soft: rgba(224, 122, 95, 0.12);
+	--gendo-cream: #f5f3f0;
+	--gendo-border: rgba(255, 255, 255, 0.06);
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+	-webkit-tap-highlight-color: transparent;
+}
+
+body {
+	font-family: var(--font-sans);
+	overflow-x: hidden;
+	padding-bottom: var(--safe-bottom);
+}
+

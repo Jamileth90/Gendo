@@ -1,0 +1,165 @@
+{
+	"version": 3,
+	"routes": [
+		{
+			"src": ".*",
+			"continue": true,
+			"transforms": [
+				{
+					"type": "request.query",
+					"op": "delete",
+					"target": {
+						"key": "__pathname"
+					}
+				}
+			]
+		},
+		{
+			"src": "/_app/immutable/.+",
+			"headers": {
+				"cache-control": "public, immutable, max-age=31536000"
+			}
+		},
+		{
+			"handle": "filesystem"
+		},
+		{
+			"src": "/_app/immutable/.+",
+			"status": 404,
+			"continue": false
+		},
+		{
+			"src": "^/?(?:/__data.json)?$",
+			"dest": "/"
+		},
+		{
+			"src": "^/admin/?(?:/__data.json)?$",
+			"dest": "/admin"
+		},
+		{
+			"src": "^/agenda/?(?:/__data.json)?$",
+			"dest": "/agenda"
+		},
+		{
+			"src": "^/api/admin/submit/?(?:/__data.json)?$",
+			"dest": "/api/admin/submit"
+		},
+		{
+			"src": "^/api/auth/?(?:/__data.json)?$",
+			"dest": "/api/auth"
+		},
+		{
+			"src": "^/api/city/?(?:/__data.json)?$",
+			"dest": "/api/city"
+		},
+		{
+			"src": "^/api/comments/?(?:/__data.json)?$",
+			"dest": "/api/comments"
+		},
+		{
+			"src": "^/api/discover/?(?:/__data.json)?$",
+			"dest": "/api/discover"
+		},
+		{
+			"src": "^/api/events/?(?:/__data.json)?$",
+			"dest": "/api/events"
+		},
+		{
+			"src": "^/api/events/by-bounds/?(?:/__data.json)?$",
+			"dest": "/api/events/by-bounds"
+		},
+		{
+			"src": "^/api/events/by-ids/?(?:/__data.json)?$",
+			"dest": "/api/events/by-ids"
+		},
+		{
+			"src": "^/api/geocode-city/?(?:/__data.json)?$",
+			"dest": "/api/geocode-city"
+		},
+		{
+			"src": "^/api/geo/?(?:/__data.json)?$",
+			"dest": "/api/geo"
+		},
+		{
+			"src": "^/api/greeting/?(?:/__data.json)?$",
+			"dest": "/api/greeting"
+		},
+		{
+			"src": "^/api/meetups/?(?:/__data.json)?$",
+			"dest": "/api/meetups"
+		},
+		{
+			"src": "^/api/preferences/?(?:/__data.json)?$",
+			"dest": "/api/preferences"
+		},
+		{
+			"src": "^/api/preferences/seed/?(?:/__data.json)?$",
+			"dest": "/api/preferences/seed"
+		},
+		{
+			"src": "^/api/refresh-all/?(?:/__data.json)?$",
+			"dest": "/api/refresh-all"
+		},
+		{
+			"src": "^/api/refresh-cr/?(?:/__data.json)?$",
+			"dest": "/api/refresh-cr"
+		},
+		{
+			"src": "^/api/rsvp/?(?:/__data.json)?$",
+			"dest": "/api/rsvp"
+		},
+		{
+			"src": "^/api/saved-events/?(?:/__data.json)?$",
+			"dest": "/api/saved-events"
+		},
+		{
+			"src": "^/api/scrape/?(?:/__data.json)?$",
+			"dest": "/api/scrape"
+		},
+		{
+			"src": "^/api/search/?(?:/__data.json)?$",
+			"dest": "/api/search"
+		},
+		{
+			"src": "^/api/stats/?(?:/__data.json)?$",
+			"dest": "/api/stats"
+		},
+		{
+			"src": "^/api/submit-event/?(?:/__data.json)?$",
+			"dest": "/api/submit-event"
+		},
+		{
+			"src": "^/api/subscribe/?(?:/__data.json)?$",
+			"dest": "/api/subscribe"
+		},
+		{
+			"src": "^/api/translate/?(?:/__data.json)?$",
+			"dest": "/api/translate"
+		},
+		{
+			"src": "^/api/trending/?(?:/__data.json)?$",
+			"dest": "/api/trending"
+		},
+		{
+			"src": "^/city/([^/]+?)/?(?:/__data.json)?$",
+			"dest": "/city/[slug]"
+		},
+		{
+			"src": "^/event/([^/]+?)/?(?:/__data.json)?$",
+			"dest": "/event/[id]"
+		},
+		{
+			"src": "^/meetups/?(?:/__data.json)?$",
+			"dest": "/meetups"
+		},
+		{
+			"src": "^/submit/?(?:/__data.json)?$",
+			"dest": "/submit"
+		},
+		{
+			"src": "/.*",
+			"dest": "/![-]/catchall"
+		}
+	],
+	"overrides": {}
+}

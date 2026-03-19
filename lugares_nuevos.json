@@ -1,0 +1,912 @@
+[{
+  "title": "Moon Cheese Restaurant",
+  "totalScore": 4.8,
+  "reviewsCount": 1054,
+  "street": "88-11 31st Ave",
+  "city": "East Elmhurst",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://mooncheeserestaurant.shop/",
+  "phone": "(718) 255-1168",
+  "categories": [
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Moon%20Cheese%20Restaurant&query_place_id=ChIJ101DLXNfwokRHsFnwAPNyWY",
+  "categoryName": "Restaurant"
+},
+{
+  "title": "Lena Trattoria",
+  "totalScore": 4.7,
+  "reviewsCount": 402,
+  "street": "3470 E Tremont Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://www.lenatrattoria.com/",
+  "phone": "(718) 239-5362",
+  "categories": [
+    "Italian restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Lena%20Trattoria&query_place_id=ChIJA4JRKzCLwokRHBTppuJxhpg",
+  "categoryName": "Italian restaurant"
+},
+{
+  "title": "Fabrika",
+  "totalScore": 4.7,
+  "reviewsCount": 711,
+  "street": "80-24 Northern Blvd",
+  "city": "Jackson Heights",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://www.fabrikany.com/",
+  "phone": "(929) 300-3135",
+  "categories": [
+    "Pan-Latin restaurant",
+    "Delivery Restaurant",
+    "Takeout Restaurant",
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Fabrika&query_place_id=ChIJF-Yh-hNfwokRNge04jMeKcE",
+  "categoryName": "Pan-Latin restaurant"
+},
+{
+  "title": "Sugar Restaurant",
+  "totalScore": 4.7,
+  "reviewsCount": 1603,
+  "street": "1010 Southern Blvd",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "http://sugarbbq.com/",
+  "phone": "(718) 600-7330",
+  "categories": [
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Sugar%20Restaurant&query_place_id=ChIJEQ7GGTj1wokRPTSSOZSVons",
+  "categoryName": "Restaurant"
+},
+{
+  "title": "Boca - Chicken Cafe",
+  "totalScore": 5,
+  "reviewsCount": 200,
+  "street": "475 Bruckner Blvd",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://www.bocachickencafe.com/",
+  "phone": "(718) 799-1399",
+  "categories": [
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Boca%20-%20Chicken%20Cafe&query_place_id=ChIJjYaWyFb1wokRcYFin-9OBbQ",
+  "categoryName": "Restaurant"
+},
+{
+  "title": "One Stop Restaurant",
+  "totalScore": 5,
+  "reviewsCount": 5,
+  "street": null,
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "phone": "(718) 269-4672",
+  "categories": [
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=One%20Stop%20Restaurant&query_place_id=ChIJZb3UA8b0wokRPaixoHmbl6s",
+  "categoryName": "Restaurant"
+},
+{
+  "title": "Porto Salvo",
+  "totalScore": 4.6,
+  "reviewsCount": 879,
+  "street": "424 E 161st St",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://portosalvonyc.com/?utm_source=google",
+  "phone": "(929) 376-7866",
+  "categories": [
+    "Italian restaurant",
+    "Cocktail bar",
+    "Family restaurant",
+    "Fine dining restaurant",
+    "Mediterranean restaurant",
+    "Oyster bar restaurant",
+    "Pasta shop",
+    "Pizza restaurant",
+    "Seafood restaurant",
+    "Vegetarian restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Porto%20Salvo&query_place_id=ChIJx-zorsr1wokR5a-0j2bBtPI",
+  "categoryName": "Italian restaurant"
+},
+{
+  "title": "Dakota's On The Cove",
+  "totalScore": 4.6,
+  "reviewsCount": 145,
+  "street": "3154 Harding Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://dakotasonthecove.com/",
+  "phone": "(718) 535-3079",
+  "categories": [
+    "Seafood restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Dakota's%20On%20The%20Cove&query_place_id=ChIJGfMswIuLwokREBZCxHNbt7U",
+  "categoryName": "Seafood restaurant"
+},
+{
+  "title": "Pine Restaurant",
+  "totalScore": 4.5,
+  "reviewsCount": 4747,
+  "street": "1913 Bronxdale Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "http://fjpine.com/",
+  "phone": "(718) 792-5956",
+  "categories": [
+    "Italian restaurant",
+    "Banquet hall",
+    "Bar",
+    "Caterer",
+    "Event venue"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Pine%20Restaurant&query_place_id=ChIJIcUqAKP0wokRJzfqJIeeYkA",
+  "categoryName": "Italian restaurant"
+},
+{
+  "title": "Mojitos",
+  "totalScore": 4.8,
+  "reviewsCount": 2236,
+  "street": "81-01 Northern Blvd",
+  "city": "Jackson Heights",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "http://www.mojitosrestaurantbar.com/",
+  "phone": "(718) 350-9861",
+  "categories": [
+    "Fusion restaurant",
+    "Bar",
+    "Bar & grill",
+    "Latin American restaurant",
+    "Nuevo Latino restaurant",
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Mojitos&query_place_id=ChIJJ1gMKadfwokRZHzqWJeEf0I",
+  "categoryName": "Fusion restaurant"
+},
+{
+  "title": "Hongdae Korean restaurant",
+  "totalScore": 4.8,
+  "reviewsCount": 674,
+  "street": "149-09 41st Ave",
+  "city": "Flushing",
+  "state": "New York",
+  "countryCode": "US",
+  "phone": "(917) 908-0368",
+  "categories": [
+    "Korean restaurant",
+    "Bar"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Hongdae%20Korean%20restaurant&query_place_id=ChIJVfOiraVhwokRASKpovthVP8",
+  "categoryName": "Korean restaurant"
+},
+{
+  "title": "Bistro Eloise - French Restaurant",
+  "totalScore": 4.6,
+  "reviewsCount": 575,
+  "street": "75-57 31st Ave",
+  "city": "East Elmhurst",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://bistroeloise.com/",
+  "phone": "(718) 440-9493",
+  "categories": [
+    "French restaurant",
+    "Brunch restaurant",
+    "Creperie",
+    "Wine bar"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Bistro%20Eloise%20-%20French%20Restaurant&query_place_id=ChIJaW0AKldfwokRZh8-LdwLkkY",
+  "categoryName": "French restaurant"
+},
+{
+  "title": "Step In",
+  "totalScore": 4.4,
+  "reviewsCount": 1114,
+  "street": "1309 Metropolitan Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "http://www.stepinnyc.com/",
+  "phone": "(718) 822-0562",
+  "categories": [
+    "American restaurant",
+    "Bar & grill"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Step%20In&query_place_id=ChIJvZeUH8H0wokRR6HyeGlF5AA",
+  "categoryName": "American restaurant"
+},
+{
+  "title": "Wicked Wolf Bronx",
+  "totalScore": 4.5,
+  "reviewsCount": 837,
+  "street": "4029 E Tremont Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "http://www.wickedwolfbronx.com/",
+  "phone": "(718) 829-4400",
+  "categories": [
+    "American restaurant",
+    "Bar",
+    "Caterer",
+    "Event venue",
+    "Irish restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Wicked%20Wolf%20Bronx&query_place_id=ChIJ-ZqZEBiLwokR-F0TH-ryllQ",
+  "categoryName": "American restaurant"
+},
+{
+  "title": "Lava Rock Kitchen",
+  "totalScore": 4.6,
+  "reviewsCount": 231,
+  "street": "2119 Starling Ave 2nd Floor",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://www.lavarockkitchen.com/",
+  "phone": "(718) 785-0048",
+  "categories": [
+    "Restaurant",
+    "Halal restaurant",
+    "Italian restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Lava%20Rock%20Kitchen&query_place_id=ChIJYZtTKRf1wokRhIdo4iq_o1o",
+  "categoryName": "Restaurant"
+},
+{
+  "title": "Nana's Kitchen",
+  "totalScore": 4.6,
+  "reviewsCount": 214,
+  "street": "1809 Hone Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "http://www.nanaskitchenbronx.com/",
+  "phone": "(347) 810-9070",
+  "categories": [
+    "Eastern European restaurant",
+    "Takeout Restaurant",
+    "Mediterranean restaurant",
+    "Seafood restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Nana's%20Kitchen&query_place_id=ChIJM0JDlaX0wokRDjesSHnSNc8",
+  "categoryName": "Eastern European restaurant"
+},
+{
+  "title": "The BLVD",
+  "totalScore": 4.7,
+  "reviewsCount": 66,
+  "street": "2918 Bruckner Blvd",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "phone": "(347) 293-6161",
+  "categories": [
+    "Bar & grill"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=The%20BLVD&query_place_id=ChIJwWp0pnSLwokRvl6QQCLBxGo",
+  "categoryName": "Bar & grill"
+},
+{
+  "title": "Johnny's Reef",
+  "totalScore": 4.4,
+  "reviewsCount": 9322,
+  "street": "2 City Island Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://johnnysreefrestaurant.com/",
+  "phone": "(718) 885-2086",
+  "categories": [
+    "Seafood restaurant",
+    "Fast food restaurant",
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Johnny's%20Reef&query_place_id=ChIJh4kgf4-LwokRNpMUb_r4n70",
+  "categoryName": "Seafood restaurant"
+},
+{
+  "title": "Pranam Restaurant & Bar",
+  "totalScore": 4.9,
+  "reviewsCount": 427,
+  "street": "45-15 28th Ave",
+  "city": "Queens",
+  "state": "New York",
+  "countryCode": "US",
+  "phone": "(347) 848-0084",
+  "categories": [
+    "Indian restaurant",
+    "Asian restaurant",
+    "Bar",
+    "Nepalese restaurant",
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Pranam%20Restaurant%20%26%20Bar&query_place_id=ChIJJyDIY_5fwokRsGZh1TaP5v8",
+  "categoryName": "Indian restaurant"
+},
+{
+  "title": "Montespino",
+  "totalScore": 4.5,
+  "reviewsCount": 95,
+  "street": "1309 Bronx River Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://montespinony.com/",
+  "phone": "(917) 471-8991",
+  "categories": [
+    "Dominican restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Montespino&query_place_id=ChIJKTBo5_D0wokRRD3Z6MpV0iY",
+  "categoryName": "Dominican restaurant"
+},
+{
+  "title": "Maisonetta",
+  "totalScore": 4.5,
+  "reviewsCount": 358,
+  "street": "141 Lincoln Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://maisonettanyc.com/",
+  "phone": "(347) 297-4607",
+  "categories": [
+    "Mexican restaurant",
+    "Bar",
+    "Brunch restaurant",
+    "Event venue",
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Maisonetta&query_place_id=ChIJ6ZxdNlX1wokRtDoCPt_Iy4I",
+  "categoryName": "Mexican restaurant"
+},
+{
+  "title": "Luna Cafe",
+  "totalScore": 4.7,
+  "reviewsCount": 20,
+  "street": "726 Courtlandt Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://lunacafeny.com/",
+  "phone": "(855) 983-8770",
+  "categories": [
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Luna%20Cafe&query_place_id=ChIJ_ZC0cPT1wokR9We0GA0wmvU",
+  "categoryName": "Restaurant"
+},
+{
+  "title": "Sobro Garden",
+  "totalScore": 4.4,
+  "reviewsCount": 202,
+  "street": "26 Bruckner Blvd",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://sobrogarden.com/",
+  "phone": "(917) 398-3400",
+  "categories": [
+    "Puerto Rican restaurant",
+    "Bar",
+    "Event venue",
+    "Lounge bar",
+    "Takeout Restaurant",
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Sobro%20Garden&query_place_id=ChIJRRenBdj1wokRDi8_4gjD-bs",
+  "categoryName": "Puerto Rican restaurant"
+},
+{
+  "title": "A&S Cucina",
+  "totalScore": 4.8,
+  "reviewsCount": 18,
+  "street": "610 Exterior St Floor 4",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "phone": "(718) 534-0880",
+  "categories": [
+    "Italian restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=A%26S%20Cucina&query_place_id=ChIJU2-XmLX1wokRQt2Kd8NsckM",
+  "categoryName": "Italian restaurant"
+},
+{
+  "title": "Suyo Gastrofusion",
+  "totalScore": 4.5,
+  "reviewsCount": 1172,
+  "street": "1401 Plaza Dr",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://suyonyc.com/",
+  "phone": "(718) 537-7896",
+  "categories": [
+    "Fusion restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Suyo%20Gastrofusion&query_place_id=ChIJvRXKoD70wokRgXaViMBas0Q",
+  "categoryName": "Fusion restaurant"
+},
+{
+  "title": "Travesias",
+  "totalScore": 4.3,
+  "reviewsCount": 1280,
+  "street": "3834 E Tremont Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://www.travesiasny.com/",
+  "phone": "(718) 828-3834",
+  "categories": [
+    "Latin American restaurant",
+    "Fusion restaurant",
+    "Nuevo Latino restaurant",
+    "Spanish restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Travesias&query_place_id=ChIJB52uuD2LwokRNwneWmZBND8",
+  "categoryName": "Latin American restaurant"
+},
+{
+  "title": "Tony's Pier",
+  "totalScore": 4.3,
+  "reviewsCount": 5993,
+  "street": "1 City Island Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://www.tonyspiercityisland.com/",
+  "phone": "(718) 885-1424",
+  "categories": [
+    "Seafood restaurant",
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Tony's%20Pier&query_place_id=ChIJBdUigIWLwokRJvFIxrTgr8s",
+  "categoryName": "Seafood restaurant"
+},
+{
+  "title": "Charlies Bar & Kitchen",
+  "totalScore": 4.4,
+  "reviewsCount": 1345,
+  "street": "112 Lincoln Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "http://charliesbarkitchen.com/",
+  "phone": "(718) 684-2338",
+  "categories": [
+    "New American restaurant",
+    "American restaurant",
+    "Bar",
+    "Cocktail bar",
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Charlies%20Bar%20%26%20Kitchen&query_place_id=ChIJrSNA6N31wokR8rOP6iXD4RA",
+  "categoryName": "New American restaurant"
+},
+{
+  "title": "Lido Harlem Restaurant",
+  "totalScore": 4.5,
+  "reviewsCount": 1762,
+  "street": "2168 Frederick Douglass Blvd",
+  "city": "New York",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "http://lidoharlem.com/",
+  "phone": "(646) 490-8575",
+  "categories": [
+    "Italian restaurant",
+    "Bar",
+    "Brunch restaurant",
+    "Lunch restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Lido%20Harlem%20Restaurant&query_place_id=ChIJ2yTMoxb2wokRixfwCY3ltok",
+  "categoryName": "Italian restaurant"
+},
+{
+  "title": "Havana Cafe Takeout",
+  "totalScore": 4.3,
+  "reviewsCount": 1492,
+  "street": "2164 Newbold Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://www.ubereats.com/store/havana-cafe-takeout/8iDF0SlCR-G_CaLTa_cCqA?srsltid=AfmBOoqjDmM5AE1Gvme9aOvLqOmhQIU5stpG29aM3_hiM8lJrJgktoT1",
+  "phone": "(718) 822-4800",
+  "categories": [
+    "Cuban restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Havana%20Cafe%20Takeout&query_place_id=ChIJw8zkWsj0wokR_JAkW37dgIM",
+  "categoryName": "Cuban restaurant"
+},
+{
+  "title": "Beatstro",
+  "totalScore": 4.3,
+  "reviewsCount": 1354,
+  "street": "135 Alexander Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://www.beatstro.com/",
+  "phone": "(718) 489-9397",
+  "categories": [
+    "New American restaurant",
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Beatstro&query_place_id=ChIJbwExnN31wokRZZ9XeXdpYXg",
+  "categoryName": "New American restaurant"
+},
+{
+  "title": "iNine Bistro",
+  "totalScore": 4.4,
+  "reviewsCount": 454,
+  "street": "53 Bruckner Blvd",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://ininebistro.com/",
+  "phone": "(929) 265-9682",
+  "categories": [
+    "Bistro",
+    "African restaurant",
+    "American restaurant",
+    "Beer garden",
+    "Breakfast restaurant",
+    "Brunch restaurant",
+    "Caterer",
+    "Delivery service",
+    "Fine dining restaurant",
+    "Live music bar"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=iNine%20Bistro&query_place_id=ChIJwSbhU1j1wokR15Mc9bFPbuI",
+  "categoryName": "Bistro"
+},
+{
+  "title": "La Cueva Fonda",
+  "totalScore": 4.5,
+  "reviewsCount": 335,
+  "street": "961 Leggett Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://lacuevafonda.onlineordersnow.com/",
+  "phone": "(347) 406-5584",
+  "categories": [
+    "Mexican restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=La%20Cueva%20Fonda&query_place_id=ChIJ0zK5_bD1wokRWzE8uQrJUZU",
+  "categoryName": "Mexican restaurant"
+},
+{
+  "title": "HK Kitchen & Draft House",
+  "totalScore": 4.3,
+  "reviewsCount": 852,
+  "street": "3599 E Tremont Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://hkkitchendrafthouse.shop/",
+  "phone": "(347) 851-2000",
+  "categories": [
+    "Bar & grill"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=HK%20Kitchen%20%26%20Draft%20House&query_place_id=ChIJycDWsouLwokRsRmos9xXmEY",
+  "categoryName": "Bar & grill"
+},
+{
+  "title": "La Patrona Restaurant",
+  "totalScore": 4.4,
+  "reviewsCount": 369,
+  "street": "558 Southern Blvd",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "http://patronaresturant.com/",
+  "phone": "(347) 270-5545",
+  "categories": [
+    "Mexican restaurant",
+    "Family restaurant",
+    "Delivery Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=La%20Patrona%20Restaurant&query_place_id=ChIJV8naGrr1wokRlmBGgvH5HQU",
+  "categoryName": "Mexican restaurant"
+},
+{
+  "title": "Randall Restaurant",
+  "totalScore": 4.3,
+  "reviewsCount": 633,
+  "street": "1328 Randall Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://randallrestaurant.shop/",
+  "phone": "(718) 328-0343",
+  "categories": [
+    "Dominican restaurant",
+    "Latin American restaurant",
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Randall%20Restaurant&query_place_id=ChIJMeQ3Zwb1wokRAXVVeEED8KM",
+  "categoryName": "Dominican restaurant"
+},
+{
+  "title": "Seis Vecinos",
+  "totalScore": 4.1,
+  "reviewsCount": 2292,
+  "street": "640 Prospect Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "http://www.seisvecinos.com/",
+  "phone": "(718) 684-8604",
+  "categories": [
+    "Central American restaurant",
+    "Bar & grill",
+    "Family restaurant",
+    "Honduran restaurant",
+    "Latin American restaurant",
+    "Mexican restaurant",
+    "Salvadoran restaurant",
+    "Spanish restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Seis%20Vecinos&query_place_id=ChIJb4LjG7r1wokRyAd4TrnrVeQ",
+  "categoryName": "Central American restaurant"
+},
+{
+  "title": "Morris Park Inn",
+  "totalScore": 4.6,
+  "reviewsCount": 204,
+  "street": "1024 Morris Park Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "http://morrisparkinn.com/",
+  "phone": "(718) 239-4109",
+  "categories": [
+    "American restaurant",
+    "Bar",
+    "Sports bar"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Morris%20Park%20Inn&query_place_id=ChIJAzjsb2n1wokR-Z1wxgBrwdQ",
+  "categoryName": "American restaurant"
+},
+{
+  "title": "Veranda",
+  "totalScore": 4.4,
+  "reviewsCount": 826,
+  "street": "208-01 Northern Blvd",
+  "city": "Bayside",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "http://www.veranda-restaurant.com/",
+  "phone": "(718) 281-2233",
+  "categories": [
+    "American restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Veranda&query_place_id=ChIJeQ7OPtxhwokR0NbauaysWDM",
+  "categoryName": "American restaurant"
+},
+{
+  "title": "Rosa's At Park",
+  "totalScore": 4.4,
+  "reviewsCount": 549,
+  "street": "2568 Park Ave 1st Floor",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "http://rosaatpark.com/",
+  "phone": "(929) 502-3700",
+  "categories": [
+    "American restaurant",
+    "Brunch restaurant",
+    "Chicken wings restaurant",
+    "Dessert restaurant",
+    "Fine dining restaurant",
+    "Gluten-free restaurant",
+    "Latin American restaurant",
+    "Delivery Restaurant",
+    "Takeout Restaurant",
+    "Restaurant",
+    "Seafood restaurant",
+    "Steak house",
+    "Vegetarian restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Rosa's%20At%20Park&query_place_id=ChIJgfSTonj1wokRA3vK2Lzo04Q",
+  "categoryName": "American restaurant"
+},
+{
+  "title": "Xochimilco Family Restaurant",
+  "totalScore": 4.4,
+  "reviewsCount": 852,
+  "street": "653 Melrose Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://xochimilcofamily.shop/",
+  "phone": "(718) 402-5400",
+  "categories": [
+    "Mexican restaurant",
+    "Family restaurant",
+    "Delivery Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Xochimilco%20Family%20Restaurant&query_place_id=ChIJu8iHasn1wokRumLZtGnNVr4",
+  "categoryName": "Mexican restaurant"
+},
+{
+  "title": "La Morada",
+  "totalScore": 4.5,
+  "reviewsCount": 545,
+  "street": "308 Willis Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "phone": "(718) 292-0235",
+  "categories": [
+    "Oaxacan restaurant",
+    "Mexican restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=La%20Morada&query_place_id=ChIJFYWVgcT1wokRXb3glY_bbYM",
+  "categoryName": "Oaxacan restaurant"
+},
+{
+  "title": "Parrilla Azteca Cibaena Restaurant",
+  "totalScore": 4.4,
+  "reviewsCount": 579,
+  "street": "1288 Westchester Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "http://parrillaaztecacibaenarestaurant.com/",
+  "phone": "(718) 708-1177",
+  "categories": [
+    "Restaurant",
+    "Bar",
+    "Dominican restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Parrilla%20Azteca%20Cibaena%20Restaurant&query_place_id=ChIJKzUTqOL1wokRViLXq42Jf3k",
+  "categoryName": "Restaurant"
+},
+{
+  "title": "Los Amigos Restaurant",
+  "totalScore": 4.4,
+  "reviewsCount": 333,
+  "street": "674 E 180th St",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://losamigosny.com/",
+  "phone": "(718) 220-3551",
+  "categories": [
+    "Latin American restaurant",
+    "Caterer",
+    "Delivery Restaurant",
+    "Takeout Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Los%20Amigos%20Restaurant&query_place_id=ChIJM8Rng2L0wokRjDcrFJVKRxo",
+  "categoryName": "Latin American restaurant"
+},
+{
+  "title": "Florinda Restaurant",
+  "totalScore": 4.7,
+  "reviewsCount": 14,
+  "street": "656 Prospect Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "phone": "(347) 833-2150",
+  "categories": [
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Florinda%20Restaurant&query_place_id=ChIJe-lfSgz1wokRw0DfAH_9dqs",
+  "categoryName": "Restaurant"
+},
+{
+  "title": "La Reina Restaurant",
+  "totalScore": 4.2,
+  "reviewsCount": 85,
+  "street": "3035 Cross Bronx Expy",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "phone": "(347) 281-9951",
+  "categories": [
+    "Latin American restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=La%20Reina%20Restaurant&query_place_id=ChIJcwxzMGqLwokR7FRx9qfvHiw",
+  "categoryName": "Latin American restaurant"
+},
+{
+  "title": "CEA - LO Cafe",
+  "totalScore": 4.2,
+  "reviewsCount": 894,
+  "street": "1003 Soundview Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://www.cealocafe.com/",
+  "phone": "(718) 620-0337",
+  "categories": [
+    "Soul food restaurant",
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=CEA%20-%20LO%20Cafe&query_place_id=ChIJx8M1ieb0wokRvrrxTZja3rk",
+  "categoryName": "Soul food restaurant"
+},
+{
+  "title": "Ajo y Oregano",
+  "totalScore": 4.2,
+  "reviewsCount": 2911,
+  "street": "1556 White Plains Rd",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://www.ajoyoregano.com/",
+  "phone": "(347) 657-1201",
+  "categories": [
+    "Dominican restaurant",
+    "Caribbean restaurant",
+    "Latin American restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Ajo%20y%20Oregano&query_place_id=ChIJz_zvS770wokR2G-DXoskJP0",
+  "categoryName": "Dominican restaurant"
+},
+{
+  "title": "Mexicocina Mezcaleria",
+  "totalScore": 4.2,
+  "reviewsCount": 813,
+  "street": "503 Jackson Ave",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://mexicocinanyc.com/",
+  "phone": "(347) 498-1055",
+  "categories": [
+    "Mexican restaurant",
+    "Bar & grill",
+    "Breakfast restaurant",
+    "Brunch restaurant",
+    "Burrito restaurant",
+    "Cocktail bar",
+    "Mexican torta restaurant",
+    "Seafood restaurant",
+    "Taco restaurant",
+    "Vegetarian restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=Mexicocina%20Mezcaleria&query_place_id=ChIJySFE9rn1wokRPae7M19QEVY",
+  "categoryName": "Mexican restaurant"
+},
+{
+  "title": "San Jose Restaurant",
+  "totalScore": 4.4,
+  "reviewsCount": 717,
+  "street": "109 E 153rd St",
+  "city": "Bronx",
+  "state": "New York",
+  "countryCode": "US",
+  "website": "https://www.getsauce.com/order/site/san-jose-restaurant/",
+  "phone": "(917) 631-9253",
+  "categories": [
+    "Mexican restaurant",
+    "Family restaurant",
+    "Latin American restaurant",
+    "Delivery Restaurant",
+    "Restaurant"
+  ],
+  "url": "https://www.google.com/maps/search/?api=1&query=San%20Jose%20Restaurant&query_place_id=ChIJFY5vBtP1wokRKiSifF0do3U",
+  "categoryName": "Mexican restaurant"
+}]

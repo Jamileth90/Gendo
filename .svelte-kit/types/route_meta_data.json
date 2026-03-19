@@ -1,0 +1,105 @@
+{
+	"/": [
+		"src/routes/+page.server.ts",
+		"src/routes/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/admin": [
+		"src/routes/admin/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/agenda": [
+		"src/routes/+layout.server.ts"
+	],
+	"/api/admin/submit": [
+		"src/routes/api/admin/submit/+server.ts"
+	],
+	"/api/auth": [
+		"src/routes/api/auth/+server.ts"
+	],
+	"/api/city": [
+		"src/routes/api/city/+server.ts"
+	],
+	"/api/comments": [
+		"src/routes/api/comments/+server.ts"
+	],
+	"/api/discover": [
+		"src/routes/api/discover/+server.ts"
+	],
+	"/api/events": [
+		"src/routes/api/events/+server.ts"
+	],
+	"/api/events/by-bounds": [
+		"src/routes/api/events/by-bounds/+server.ts"
+	],
+	"/api/events/by-ids": [
+		"src/routes/api/events/by-ids/+server.ts"
+	],
+	"/api/geocode-city": [
+		"src/routes/api/geocode-city/+server.ts"
+	],
+	"/api/geo": [
+		"src/routes/api/geo/+server.ts"
+	],
+	"/api/greeting": [
+		"src/routes/api/greeting/+server.ts"
+	],
+	"/api/meetups": [
+		"src/routes/api/meetups/+server.ts"
+	],
+	"/api/preferences": [
+		"src/routes/api/preferences/+server.ts"
+	],
+	"/api/preferences/seed": [
+		"src/routes/api/preferences/seed/+server.ts"
+	],
+	"/api/refresh-all": [
+		"src/routes/api/refresh-all/+server.ts"
+	],
+	"/api/refresh-cr": [
+		"src/routes/api/refresh-cr/+server.ts"
+	],
+	"/api/rsvp": [
+		"src/routes/api/rsvp/+server.ts"
+	],
+	"/api/saved-events": [
+		"src/routes/api/saved-events/+server.ts"
+	],
+	"/api/scrape": [
+		"src/routes/api/scrape/+server.ts"
+	],
+	"/api/search": [
+		"src/routes/api/search/+server.ts"
+	],
+	"/api/stats": [
+		"src/routes/api/stats/+server.ts"
+	],
+	"/api/submit-event": [
+		"src/routes/api/submit-event/+server.ts"
+	],
+	"/api/subscribe": [
+		"src/routes/api/subscribe/+server.ts"
+	],
+	"/api/translate": [
+		"src/routes/api/translate/+server.ts"
+	],
+	"/api/trending": [
+		"src/routes/api/trending/+server.ts"
+	],
+	"/city/[slug]": [
+		"src/routes/city/[slug]/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/event/[id]": [
+		"src/routes/event/[id]/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/meetups": [
+		"src/routes/meetups/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/submit": [
+		"src/routes/submit/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	]
+}
